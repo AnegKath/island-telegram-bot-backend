@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Острів</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="loading" class="screen">
+    <div class="spinner"></div>
+    <p>Створюємо твій острів...</p>
+  </div>
+
+  <div id="profile-screen" class="screen hidden">
+    <div class="profile-card">
+      <img id="avatar" class="avatar" src="" alt="avatar" />
+      <h1 id="welcome-title">Ласкаво просимо!</h1>
+      <p id="display-name" class="display-name"></p>
+      <p id="sub-text" class="sub-text"></p>
+      <button id="continue-btn">Почати будувати острів</button>
+    </div>
+  </div>
+
+  <div id="error-screen" class="screen hidden">
+    <p>Щось пішло не так. Спробуй відкрити застосунок ще раз через бота.</p>
+    <p id="error-detail" class="error-detail"></p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
