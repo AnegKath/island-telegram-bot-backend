@@ -32,7 +32,8 @@ app.add_middleware(
 )
 
 # Роздаємо статичні файли (аватарки) напряму, щоб фронтенд міг їх завантажити
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# У проді в Docker робоча директорія /app, статика лежить у /app/backend/static
+app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 
 
 @app.on_event("startup")
