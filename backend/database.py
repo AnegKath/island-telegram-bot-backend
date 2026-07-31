@@ -1,9 +1,13 @@
+from pathlib import Path
+
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
-# Для старту використовуємо SQLite - нуль налаштувань, файл island.db
-# Коли будеш деплоїти - заміниш на PostgreSQL, просто зміниш DATABASE_URL
-DATABASE_URL = "sqlite+aiosqlite:///./island.db"
+# Для старту використовуємо SQLite - нуль налаштувань, файл island.db.
+# Шлях абсолютний (поряд з цим файлом) - незалежно від того, звідки запущено процес.
+# Коли будеш деплоїти постійно - заміниш DATABASE_URL на PostgreSQL.
+BASE_DIR = Path(__file__).resolve().parent
+DATABASE_URL = f"sqlite+aiosqlite:///{BASE_DIR / 'island.db'}"
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
