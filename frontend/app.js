@@ -1,6 +1,6 @@
 // Бекенд тепер роздає і фронтенд, і API з одного порту - тому шлях відносний,
 // адресу міняти більше не треба навіть коли міняється ngrok-посилання
-const API_BASE_URL = "";
+const API_BASE_URL = "https://island-telegram-bot-backend.onrender.com";
 
 const tg = window.Telegram.WebApp;
 tg.ready();
