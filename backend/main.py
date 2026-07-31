@@ -1,5 +1,6 @@
 import os
 import random
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends
@@ -21,6 +22,14 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 # Скільки дефолтних аватарок лежить в static/avatars (avatar1.svg ... avatar6.svg)
 AVATAR_COUNT = 6
 
+# Абсолютні шляхи, обчислені від розташування ЦЬОГО файлу (main.py),
+# а не від того, з якої папки запущено процес. Це важливо, бо на Render
+# (і взагалі на будь-якому хостингу) команда запускається з кореня репозиторію,
+# а не з backend/ - тому відносні шляхи типу "static" або "../frontend" ламались.
+BASE_DIR = Path(__file__).resolve().parent          # .../backend
+STATIC_DIR = BASE_DIR / "static"                     # .../backend/static
+FRONTEND_DIR = BASE_DIR.parent / "frontend"           # .../frontend
+
 app = FastAPI(title="Island MVP API")
 
 app.add_middleware(
@@ -32,8 +41,7 @@ app.add_middleware(
 )
 
 # Роздаємо статичні файли (аватарки) напряму, щоб фронтенд міг їх завантажити
-# У проді в Docker робоча директорія /app, статика лежить у /app/backend/static
-app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.on_event("startup")
@@ -105,5 +113,4 @@ async def health():
 
 # Роздаємо фронтенд (index.html, app.js, style.css) з того ж порту, що і API.
 # Це має бути ОСТАННІМ рядком - інакше він "перехопить" запити, призначені для /api/...
-# Завдяки цьому потрібен лише ОДИН ngrok-тунель на порт 8000, а не два.
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
