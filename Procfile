@@ -1,1 +1,1 @@
-web: python -m uvicorn main:app --host 0.0.0.0 --port 10000 --app-dir backend
+web: python3 -m uvicorn main:app --host 0.0.0.0 --port 10000 --app-dir backend
