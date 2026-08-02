@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Острів</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- model-viewer - веб-компонент від Google для показу 3D-моделей (.glb) без налаштування three.js -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -17,9 +16,7 @@
 
   <div id="profile-screen" class="screen hidden">
     <div class="profile-card">
-      <!-- Для SVG-заглушки показуємо звичайну картинку -->
       <img id="avatar-img" class="avatar" src="" alt="avatar" />
-      <!-- Для справжнього 3D-аватара показуємо інтерактивну модель (можна обертати пальцем) -->
       <model-viewer id="avatar-3d" class="avatar-3d hidden" camera-controls auto-rotate
         camera-orbit="0deg 90deg 2.2m" disable-zoom></model-viewer>
 
@@ -37,10 +34,27 @@
     <p id="error-detail" class="error-detail"></p>
   </div>
 
-  <!-- Overlay з вбудованим конструктором аватара Ready Player Me -->
   <div id="avatar-creator-overlay" class="overlay hidden">
     <button id="close-avatar-creator" class="overlay-close">✕</button>
     <iframe id="avatar-creator-frame" class="avatar-creator-frame" allow="camera *; microphone *"></iframe>
+
+    <div class="fallback-bar">
+      <button id="open-external-btn" class="fallback-link">📷 Не працює камера? Відкрити в браузері</button>
+    </div>
+  </div>
+
+  <div id="paste-avatar-overlay" class="overlay centered hidden">
+    <button id="close-paste-avatar" class="overlay-close">✕</button>
+    <div class="paste-card">
+      <h2>Встав посилання на аватар</h2>
+      <p class="sub-text">
+        1. Відкриється браузер — сфоткай обличчя або обери вигляд вручну<br>
+        2. Коли конструктор покаже готовий аватар, натисни "Copy Avatar URL" (або скопіюй посилання зі сторінки)<br>
+        3. Повернись сюди і встав посилання нижче
+      </p>
+      <input id="avatar-url-input" type="url" placeholder="https://models.readyplayer.me/....glb" />
+      <button id="save-pasted-avatar-btn">Зберегти аватар</button>
+    </div>
   </div>
 
   <script src="app.js"></script>

@@ -24,17 +24,14 @@ function applyTelegramTheme() {
   document.documentElement.style.setProperty("--tg-button-text", p.button_text_color || "#ffffff");
   document.documentElement.style.setProperty("--tg-secondary-bg", p.secondary_bg_color || "#f0f0f0");
 
-  // Колір верхньої шапки Telegram зливається з фоном застосунку - зникає межа "де сайт, де Telegram"
   tg.setHeaderColor(p.bg_color || "#ffffff");
   tg.setBackgroundColor(p.bg_color || "#ffffff");
 }
 applyTelegramTheme();
 tg.onEvent("themeChanged", applyTelegramTheme);
 
-// Забороняємо свайп вниз для закриття - типова браузерна поведінка, якої не повинно бути в застосунку
 if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
 
-// Тактильний відгук при натисканні кнопок - те, чого браузерні сайти не вміють, а нативні застосунки завжди мають
 function hapticTap() {
   if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
 }
@@ -43,7 +40,7 @@ const loadingScreen = document.getElementById("loading");
 const profileScreen = document.getElementById("profile-screen");
 const errorScreen = document.getElementById("error-screen");
 
-let currentProfile = null; // зберігаємо останній завантажений профіль (знадобиться для збереження аватара)
+let currentProfile = null;
 
 function showScreen(screen) {
   [loadingScreen, profileScreen, errorScreen].forEach((s) => s.classList.add("hidden"));
@@ -52,10 +49,9 @@ function showScreen(screen) {
 
 async function initProfile() {
   try {
-    const initData = tg.initData; // сирий рядок, який бекенд перевірить на справжність
+    const initData = tg.initData;
 
     if (!initData) {
-      // Немає initData - застосунок відкрито не через Telegram
       document.getElementById("error-detail").textContent =
         "Відкрий цей застосунок через кнопку в Telegram-боті, а не напряму в браузері.";
       showScreen(errorScreen);
@@ -89,13 +85,11 @@ function renderProfile(profile) {
   const createAvatarBtn = document.getElementById("create-avatar-btn");
 
   if (profile.has_3d_avatar) {
-    // Юзер вже створив справжній 3D-аватар - показуємо інтерактивну модель
     avatar3d.src = profile.avatar_url;
     avatar3d.classList.remove("hidden");
     avatarImg.classList.add("hidden");
     createAvatarBtn.textContent = "🧑‍🎨 Переробити 3D-аватар";
   } else {
-    // Ще дефолтна SVG-заглушка - показуємо звичайну картинку
     avatarImg.src = `${API_BASE_URL}${profile.avatar_url}`;
     avatarImg.classList.remove("hidden");
     avatar3d.classList.add("hidden");
@@ -120,7 +114,6 @@ function renderProfile(profile) {
 
 document.getElementById("continue-btn").addEventListener("click", () => {
   hapticTap();
-  // Тут пізніше буде перехід до самого острова (grid-екран)
   tg.showAlert("Далі тут буде острів 🏝️ (наступний етап розробки)");
 });
 
@@ -128,11 +121,11 @@ document.getElementById("continue-btn").addEventListener("click", () => {
 
 const avatarCreatorOverlay = document.getElementById("avatar-creator-overlay");
 const avatarCreatorFrame = document.getElementById("avatar-creator-frame");
+const pasteAvatarOverlay = document.getElementById("paste-avatar-overlay");
+const avatarUrlInput = document.getElementById("avatar-url-input");
 
 function openAvatarCreator() {
   hapticTap();
-  // quickStart=true пропускає зайві екрани, clearCache гарантує свіжу сесію конструктора.
-  // language=uk - інтерфейс конструктора теж українською.
   avatarCreatorFrame.src =
     `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?frameApi&quickStart=true&clearCache&language=uk`;
   avatarCreatorOverlay.classList.remove("hidden");
@@ -141,23 +134,34 @@ function openAvatarCreator() {
 function closeAvatarCreator() {
   hapticTap();
   avatarCreatorOverlay.classList.add("hidden");
-  avatarCreatorFrame.src = ""; // зупиняємо iframe, щоб не працював у фоні
+  avatarCreatorFrame.src = "";
 }
 
 document.getElementById("create-avatar-btn").addEventListener("click", openAvatarCreator);
 document.getElementById("close-avatar-creator").addEventListener("click", closeAvatarCreator);
 
-// Ready Player Me спілкується з батьківською сторінкою через postMessage.
-// Слухаємо подію "v1.avatar.exported" - вона приходить, коли юзер закінчив
-// створення аватара, і містить посилання на готову .glb модель.
+async function saveAvatarUrl(avatarUrl) {
+  const response = await fetch(`${API_BASE_URL}/api/profile/avatar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ init_data: tg.initData, avatar_url: avatarUrl }),
+  });
+
+  if (!response.ok) throw new Error("Не вдалось зберегти аватар");
+
+  const updatedProfile = await response.json();
+  renderProfile(updatedProfile);
+  tg.HapticFeedback?.notificationOccurred("success");
+}
+
 window.addEventListener("message", async (event) => {
-  if (!event.origin.includes("readyplayer.me")) return; // ігноруємо чужі повідомлення
+  if (!event.origin.includes("readyplayer.me")) return;
 
   let data;
   try {
     data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
   } catch {
-    return; // не JSON - не наше повідомлення
+    return;
   }
 
   if (data?.eventName !== "v1.avatar.exported") return;
@@ -166,18 +170,45 @@ window.addEventListener("message", async (event) => {
   if (!avatarUrl) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/profile/avatar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ init_data: tg.initData, avatar_url: avatarUrl }),
-    });
-
-    if (!response.ok) throw new Error("Не вдалось зберегти аватар");
-
-    const updatedProfile = await response.json();
+    await saveAvatarUrl(avatarUrl);
     closeAvatarCreator();
-    renderProfile(updatedProfile);
-    tg.HapticFeedback?.notificationOccurred("success");
+  } catch (err) {
+    tg.showAlert("Не вдалось зберегти аватар: " + err.message);
+  }
+});
+
+// --- Запасний шлях: конструктор у зовнішньому браузері (коли камера в iframe не працює) ---
+
+document.getElementById("open-external-btn").addEventListener("click", () => {
+  hapticTap();
+  closeAvatarCreator();
+
+  const externalUrl =
+    `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?quickStart=true&clearCache&language=uk`;
+  tg.openLink(externalUrl);
+
+  pasteAvatarOverlay.classList.remove("hidden");
+});
+
+document.getElementById("close-paste-avatar").addEventListener("click", () => {
+  hapticTap();
+  pasteAvatarOverlay.classList.add("hidden");
+  avatarUrlInput.value = "";
+});
+
+document.getElementById("save-pasted-avatar-btn").addEventListener("click", async () => {
+  hapticTap();
+  const url = avatarUrlInput.value.trim();
+
+  if (!url || !url.includes("readyplayer.me")) {
+    tg.showAlert("Схоже, це не посилання на аватар з Ready Player Me. Перевір і встав ще раз.");
+    return;
+  }
+
+  try {
+    await saveAvatarUrl(url);
+    pasteAvatarOverlay.classList.add("hidden");
+    avatarUrlInput.value = "";
   } catch (err) {
     tg.showAlert("Не вдалось зберегти аватар: " + err.message);
   }
