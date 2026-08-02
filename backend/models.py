@@ -28,7 +28,13 @@ class User(Base):
     # 4-значний тег, який робить нікнейм унікальним при відображенні: Nickname#1234
     tag: Mapped[str] = mapped_column(String(4))
 
-    # Шлях до аватарки (одна з дефолтних, обирається випадково при створенні)
-    avatar_url: Mapped[str] = mapped_column(String(200))
+    # Посилання на аватарку. Спочатку - шлях до дефолтної SVG-заглушки
+    # (/static/avatars/avatarN.svg), пізніше - може стати посиланням на
+    # справжню 3D-модель (.glb) з Ready Player Me. Довжина збільшена під URL.
+    avatar_url: Mapped[str] = mapped_column(String(500))
+
+    # True, якщо юзер вже створив собі справжній 3D-аватар через Ready Player Me
+    # (тоді avatar_url вказує на .glb файл, а не на SVG-заглушку)
+    has_3d_avatar: Mapped[bool] = mapped_column(default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -4,9 +4,19 @@
   padding: 0;
 }
 
+:root {
+  --tg-bg: #ffffff;
+  --tg-text: #000000;
+  --tg-hint: #999999;
+  --tg-button: #56c596;
+  --tg-button-text: #ffffff;
+  --tg-secondary-bg: #f0f0f0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(180deg, #a8e6cf 0%, #56c596 100%);
+  background: var(--tg-bg);
+  color: var(--tg-text);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -43,12 +53,12 @@ body {
 }
 
 #loading p {
-  color: #fff;
+  color: var(--tg-hint);
   font-weight: 500;
 }
 
 .profile-card {
-  background: #ffffff;
+  background: var(--tg-secondary-bg);
   border-radius: 24px;
   padding: 32px 24px;
   width: 100%;
@@ -65,22 +75,29 @@ body {
   margin-bottom: 16px;
 }
 
+.avatar-3d {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 16px;
+  --poster-color: transparent;
+}
+
 #welcome-title {
   font-size: 22px;
-  color: #1a535c;
+  color: var(--tg-text);
   margin-bottom: 8px;
 }
 
 .display-name {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--tg-text);
   margin-bottom: 4px;
 }
 
 .sub-text {
   font-size: 14px;
-  color: #888;
+  color: var(--tg-hint);
   margin-bottom: 24px;
 }
 
@@ -89,8 +106,8 @@ body {
   padding: 14px;
   border: none;
   border-radius: 14px;
-  background: #56c596;
-  color: #fff;
+  background: var(--tg-button);
+  color: var(--tg-button-text);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -98,6 +115,54 @@ body {
 
 #continue-btn:active {
   opacity: 0.85;
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--tg-button);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--tg-button);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.secondary-btn:active {
+  opacity: 0.7;
+}
+
+/* На весь екран, поверх усього - тут живе вбудований конструктор Ready Player Me */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1001;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.avatar-creator-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 .error-detail {
