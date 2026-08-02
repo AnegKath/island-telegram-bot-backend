@@ -40,6 +40,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def add_permissions_policy_header(request, call_next):
+    """
+    Дозволяємо доступ до камери/мікрофону для вкладених iframe (Ready Player Me).
+    Без цього заголовка сучасні браузери блокують getUserMedia у вкладеному iframe,
+    навіть якщо на самому iframe стоїть atribut allow="camera".
+    """
+    response = await call_next(request)
+    response.headers["Permissions-Policy"] = "camera=*, microphone=*"
+    return response
+
 # Роздаємо статичні файли (аватарки) напряму, щоб фронтенд міг їх завантажити
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
