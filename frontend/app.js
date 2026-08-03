@@ -45,11 +45,12 @@ const errorScreen = document.getElementById("error-screen");
 const planetScreen = document.getElementById("planet-screen");
 const planetCanvas = document.getElementById("planet-canvas");
 const planetBackBtn = document.getElementById("planet-back-btn");
+const mainMenu = document.getElementById("main-menu");
 
 let currentProfile = null;
 
 function showScreen(screen) {
-  [loadingScreen, profileScreen, errorScreen, planetScreen].forEach((s) => s.classList.add("hidden"));
+  [loadingScreen, profileScreen, errorScreen, planetScreen, mainMenu].forEach((s) => s.classList.add("hidden"));
   screen.classList.remove("hidden");
 }
 
@@ -86,29 +87,21 @@ async function initProfile() {
 function renderProfile(profile) {
   currentProfile = profile;
 
-  const avatarImg = document.getElementById("avatar-img");
-  const createAvatarBtn = document.getElementById("create-avatar-btn");
-
-  avatarImg.src = profile.avatar_url.startsWith("data:")
+  const avatarUrl = profile.avatar_url.startsWith("data:")
     ? profile.avatar_url
     : `${API_BASE_URL}${profile.avatar_url}`;
 
-  createAvatarBtn.textContent = profile.has_3d_avatar ? "🧑‍🎨 Змінити аватар" : "🧑‍🎨 Створити аватар";
-
+  // Профіль (на випадок якщо потрібен десь)
+  document.getElementById("avatar-img").src = avatarUrl;
+  document.getElementById("create-avatar-btn").textContent =
+    profile.has_3d_avatar ? "🧑‍🎨 Змінити аватар" : "🧑‍🎨 Створити аватар";
   document.getElementById("display-name").textContent = profile.display_name;
 
-  const title = document.getElementById("welcome-title");
-  const subText = document.getElementById("sub-text");
+  // Головне меню
+  document.getElementById("menu-avatar").src = avatarUrl;
+  document.getElementById("menu-display-name").textContent = profile.display_name;
 
-  if (profile.is_new) {
-    title.textContent = "Твій острів створено!";
-    subText.textContent = "Це твій профіль. Спробуй зібрати собі власного персонажа!";
-  } else {
-    title.textContent = "З поверненням!";
-    subText.textContent = "Твій профіль уже готовий.";
-  }
-
-  showScreen(profileScreen);
+  showScreen(mainMenu);
 }
 
 let planetInitialized = false;
@@ -259,7 +252,7 @@ function initPlanet() {
 
 planetBackBtn.addEventListener("click", () => {
   hapticTap();
-  showScreen(profileScreen);
+  showScreen(mainMenu);
 });
 
 window.addEventListener("load", () => {
@@ -285,6 +278,23 @@ document.getElementById("continue-btn").addEventListener("click", () => {
     document.getElementById("error-detail").textContent = String(e?.message || e);
     showScreen(errorScreen);
   }
+});
+
+// Навігація з головного меню
+document.getElementById("menu-island-btn").addEventListener("click", () => {
+  hapticTap();
+  if (!window.THREE) {
+    document.getElementById("error-detail").textContent = "3D бібліотека не завантажилась.";
+    showScreen(errorScreen);
+    return;
+  }
+  showScreen(planetScreen);
+  requestAnimationFrame(() => initPlanet());
+});
+
+document.getElementById("menu-avatar-btn").addEventListener("click", () => {
+  hapticTap();
+  openAvatarBuilder();
 });
 
 const SKIN_TONES = ["#FFDBB4", "#F1C27D", "#E0AC69", "#C68642", "#8D5524", "#5C3317"];

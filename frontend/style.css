@@ -298,3 +298,143 @@ body {
   font: inherit;
   cursor: pointer;
 }
+
+/* ═══════════════════════════════════════════════
+   ГОЛОВНЕ МЕНЮ — зелений стиль
+   ═══════════════════════════════════════════════ */
+
+#main-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+}
+
+.menu-bg {
+  position: absolute;
+  inset: 0;
+}
+
+.menu-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.menu-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    170deg,
+    rgba(27, 94, 32, 0.88) 0%,
+    rgba(46, 125, 50, 0.78) 35%,
+    rgba(56, 142, 60, 0.65) 65%,
+    rgba(76, 175, 80, 0.5) 100%
+  );
+}
+
+.menu-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 48px 24px 32px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.menu-header {
+  text-align: center;
+  margin-bottom: 36px;
+  flex-shrink: 0;
+}
+
+.menu-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  object-fit: cover;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.menu-display-name {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.menu-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.menu-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 340px;
+  flex-shrink: 0;
+}
+
+.menu-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 100px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+
+.menu-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.menu-card:active .menu-card-img {
+  transform: scale(1.05);
+}
+
+.menu-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(27, 94, 32, 0.82) 0%,
+    rgba(46, 125, 50, 0.65) 100%
+  );
+}
+
+.menu-card-title {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 22px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.menu-card:active .menu-card-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(27, 94, 32, 0.95) 0%,
+    rgba(46, 125, 50, 0.8) 100%
+  );
+}
