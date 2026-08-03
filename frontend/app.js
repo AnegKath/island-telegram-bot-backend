@@ -1,10 +1,5 @@
 const API_BASE_URL = "";
 
-// Субдомен Ready Player Me. "demo" - публічний тестовий, підходить для розробки.
-// Коли зареєструєш свій акаунт на https://studio.readyplayer.me - заміниш
-// на власний (наприклад "island-mvp") для повноцінного продакшн-використання.
-const RPM_SUBDOMAIN = "demo";
-
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
@@ -18,7 +13,6 @@ function applyTelegramTheme() {
   document.documentElement.style.setProperty("--tg-button", p.button_color || "#56c596");
   document.documentElement.style.setProperty("--tg-button-text", p.button_text_color || "#ffffff");
   document.documentElement.style.setProperty("--tg-secondary-bg", p.secondary_bg_color || "#f0f0f0");
-
   tg.setHeaderColor(p.bg_color || "#ffffff");
   tg.setBackgroundColor(p.bg_color || "#ffffff");
 }
@@ -76,20 +70,13 @@ function renderProfile(profile) {
   currentProfile = profile;
 
   const avatarImg = document.getElementById("avatar-img");
-  const avatar3d = document.getElementById("avatar-3d");
   const createAvatarBtn = document.getElementById("create-avatar-btn");
 
-  if (profile.has_3d_avatar) {
-    avatar3d.src = profile.avatar_url;
-    avatar3d.classList.remove("hidden");
-    avatarImg.classList.add("hidden");
-    createAvatarBtn.textContent = "🧑‍🎨 Переробити 3D-аватар";
-  } else {
-    avatarImg.src = `${API_BASE_URL}${profile.avatar_url}`;
-    avatarImg.classList.remove("hidden");
-    avatar3d.classList.add("hidden");
-    createAvatarBtn.textContent = "🧑‍🎨 Створити 3D-аватар";
-  }
+  avatarImg.src = profile.avatar_url.startsWith("data:")
+    ? profile.avatar_url
+    : `${API_BASE_URL}${profile.avatar_url}`;
+
+  createAvatarBtn.textContent = profile.has_3d_avatar ? "🧑‍🎨 Змінити аватар" : "🧑‍🎨 Створити аватар";
 
   document.getElementById("display-name").textContent = profile.display_name;
 
@@ -98,7 +85,7 @@ function renderProfile(profile) {
 
   if (profile.is_new) {
     title.textContent = "Твій острів створено!";
-    subText.textContent = "Це твій профіль. Спробуй створити собі справжній 3D-аватар!";
+    subText.textContent = "Це твій профіль. Спробуй зібрати собі власного персонажа!";
   } else {
     title.textContent = "З поверненням!";
     subText.textContent = "Твій профіль уже готовий.";
@@ -112,64 +99,189 @@ document.getElementById("continue-btn").addEventListener("click", () => {
   tg.showAlert("Далі тут буде острів 🏝️ (наступний етап розробки)");
 });
 
-// --- Конструктор 3D-аватара (Ready Player Me) - ручний вибір зовнішності ---
+const SKIN_TONES = ["#FFDBB4", "#F1C27D", "#E0AC69", "#C68642", "#8D5524", "#5C3317"];
+const HAIR_COLORS = ["#2C1B18", "#4A2E1E", "#B55239", "#D6B370", "#E8E8E8", "#1E88E5", "#E91E63"];
+const HAIR_STYLES = [
+  { id: "bald", label: "Лисий" },
+  { id: "short", label: "Коротка" },
+  { id: "long", label: "Довга" },
+  { id: "curly", label: "Кучері" },
+  { id: "mohawk", label: "Ірокез" },
+];
+const MOUTH_STYLES = [
+  { id: "smile", label: "Усмішка" },
+  { id: "neutral", label: "Нейтрально" },
+  { id: "open", label: "Здивування" },
+  { id: "smirk", label: "Смірк" },
+];
 
-const avatarCreatorOverlay = document.getElementById("avatar-creator-overlay");
-const avatarCreatorFrame = document.getElementById("avatar-creator-frame");
+let avatarConfig = {
+  skin: SKIN_TONES[0],
+  hairStyle: "short",
+  hairColor: HAIR_COLORS[0],
+  mouth: "smile",
+  glasses: false,
+};
 
-function openAvatarCreator() {
-  hapticTap();
-  // selfie=false прибирає опцію фотографування - юзер одразу обирає готовий
-  // шаблон зовнішності і налаштовує його вручну (обличчя, зачіска, одяг).
-  avatarCreatorFrame.src =
-    `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?frameApi&clearCache&language=uk&selfie=false`;
-  avatarCreatorOverlay.classList.remove("hidden");
+function hairSvg(style, color) {
+  switch (style) {
+    case "bald":
+      return "";
+    case "short":
+      return `<path d="M32,88 Q36,18 100,18 Q164,18 168,88 L168,55 Q160,32 100,32 Q40,32 32,55 Z" fill="${color}"/>`;
+    case "long":
+      return `
+        <path d="M32,88 Q36,18 100,18 Q164,18 168,88 L168,55 Q160,32 100,32 Q40,32 32,55 Z" fill="${color}"/>
+        <rect x="22" y="55" width="20" height="90" rx="10" fill="${color}"/>
+        <rect x="158" y="55" width="20" height="90" rx="10" fill="${color}"/>
+      `;
+    case "curly":
+      return `
+        <circle cx="50" cy="45" r="18" fill="${color}"/>
+        <circle cx="80" cy="28" r="20" fill="${color}"/>
+        <circle cx="115" cy="26" r="20" fill="${color}"/>
+        <circle cx="148" cy="42" r="18" fill="${color}"/>
+        <circle cx="65" cy="35" r="16" fill="${color}"/>
+        <circle cx="132" cy="34" r="16" fill="${color}"/>
+      `;
+    case "mohawk":
+      return `<path d="M85,15 Q100,5 115,15 L120,70 Q100,60 80,70 Z" fill="${color}"/>`;
+    default:
+      return "";
+  }
 }
 
-function closeAvatarCreator() {
-  hapticTap();
-  avatarCreatorOverlay.classList.add("hidden");
-  avatarCreatorFrame.src = "";
+function mouthSvg(style) {
+  switch (style) {
+    case "smile":
+      return `<path d="M75,130 Q100,152 125,130" stroke="#5a3825" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    case "neutral":
+      return `<line x1="80" y1="132" x2="120" y2="132" stroke="#5a3825" stroke-width="4" stroke-linecap="round"/>`;
+    case "open":
+      return `<ellipse cx="100" cy="133" rx="12" ry="16" fill="#5a3825"/>`;
+    case "smirk":
+      return `<path d="M78,130 Q100,140 122,124" stroke="#5a3825" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    default:
+      return "";
+  }
 }
 
-document.getElementById("create-avatar-btn").addEventListener("click", openAvatarCreator);
-document.getElementById("close-avatar-creator").addEventListener("click", closeAvatarCreator);
+function glassesSvg(enabled) {
+  if (!enabled) return "";
+  return `
+    <circle cx="78" cy="95" r="16" fill="none" stroke="#333" stroke-width="4"/>
+    <circle cx="122" cy="95" r="16" fill="none" stroke="#333" stroke-width="4"/>
+    <line x1="94" y1="95" x2="106" y2="95" stroke="#333" stroke-width="4"/>
+  `;
+}
 
-async function saveAvatarUrl(avatarUrl) {
-  const response = await fetch(`${API_BASE_URL}/api/profile/avatar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ init_data: tg.initData, avatar_url: avatarUrl }),
+function generateAvatarSVG(config) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="90" fill="#eef6f2"/>
+    <ellipse cx="100" cy="115" rx="70" ry="75" fill="${config.skin}"/>
+    <circle cx="78" cy="95" r="7" fill="#2c1b18"/>
+    <circle cx="122" cy="95" r="7" fill="#2c1b18"/>
+    <circle cx="80" cy="93" r="2" fill="#fff"/>
+    <circle cx="124" cy="93" r="2" fill="#fff"/>
+    ${mouthSvg(config.mouth)}
+    ${hairSvg(config.hairStyle, config.hairColor)}
+    ${glassesSvg(config.glasses)}
+  </svg>`;
+}
+
+function renderAvatarPreview() {
+  document.getElementById("avatar-preview").innerHTML = generateAvatarSVG(avatarConfig);
+}
+
+function buildSwatchRow(containerId, colors, configKey) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+  colors.forEach((color) => {
+    const btn = document.createElement("button");
+    btn.className = "swatch";
+    btn.style.background = color;
+    if (avatarConfig[configKey] === color) btn.classList.add("selected");
+    btn.addEventListener("click", () => {
+      hapticTap();
+      avatarConfig[configKey] = color;
+      container.querySelectorAll(".swatch").forEach((s) => s.classList.remove("selected"));
+      btn.classList.add("selected");
+      renderAvatarPreview();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function buildPillRow(containerId, options, configKey) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+  options.forEach((opt) => {
+    const btn = document.createElement("button");
+    btn.className = "pill-btn";
+    btn.textContent = opt.label;
+    if (avatarConfig[configKey] === opt.id) btn.classList.add("selected");
+    btn.addEventListener("click", () => {
+      hapticTap();
+      avatarConfig[configKey] = opt.id;
+      container.querySelectorAll(".pill-btn").forEach((p) => p.classList.remove("selected"));
+      btn.classList.add("selected");
+      renderAvatarPreview();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function setupAvatarBuilder() {
+  buildSwatchRow("skin-swatches", SKIN_TONES, "skin");
+  buildPillRow("hair-style-row", HAIR_STYLES, "hairStyle");
+  buildSwatchRow("hair-color-swatches", HAIR_COLORS, "hairColor");
+  buildPillRow("mouth-style-row", MOUTH_STYLES, "mouth");
+
+  const glassesToggle = document.getElementById("glasses-toggle");
+  glassesToggle.checked = avatarConfig.glasses;
+  glassesToggle.addEventListener("change", () => {
+    hapticTap();
+    avatarConfig.glasses = glassesToggle.checked;
+    renderAvatarPreview();
   });
 
-  if (!response.ok) throw new Error("Не вдалось зберегти аватар");
-
-  const updatedProfile = await response.json();
-  renderProfile(updatedProfile);
-  tg.HapticFeedback?.notificationOccurred("success");
+  renderAvatarPreview();
 }
 
-// Ready Player Me спілкується з батьківською сторінкою через postMessage.
-// Слухаємо подію "v1.avatar.exported" - вона приходить, коли юзер закінчив
-// вибирати зовнішність вручну з галереї шаблонів, і містить посилання на .glb модель.
-window.addEventListener("message", async (event) => {
-  if (!event.origin.includes("readyplayer.me")) return;
+const avatarBuilderOverlay = document.getElementById("avatar-builder-overlay");
 
-  let data;
+function openAvatarBuilder() {
+  hapticTap();
+  setupAvatarBuilder();
+  avatarBuilderOverlay.classList.remove("hidden");
+}
+
+function closeAvatarBuilder() {
+  hapticTap();
+  avatarBuilderOverlay.classList.add("hidden");
+}
+
+document.getElementById("create-avatar-btn").addEventListener("click", openAvatarBuilder);
+document.getElementById("close-avatar-builder").addEventListener("click", closeAvatarBuilder);
+
+document.getElementById("save-avatar-btn").addEventListener("click", async () => {
+  hapticTap();
+  const svgString = generateAvatarSVG(avatarConfig);
+  const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`;
+
   try {
-    data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-  } catch {
-    return;
-  }
+    const response = await fetch(`${API_BASE_URL}/api/profile/avatar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ init_data: tg.initData, avatar_url: dataUri }),
+    });
 
-  if (data?.eventName !== "v1.avatar.exported") return;
+    if (!response.ok) throw new Error("Не вдалось зберегти аватар");
 
-  const avatarUrl = data.data?.url;
-  if (!avatarUrl) return;
-
-  try {
-    await saveAvatarUrl(avatarUrl);
-    closeAvatarCreator();
+    const updatedProfile = await response.json();
+    closeAvatarBuilder();
+    renderProfile(updatedProfile);
+    tg.HapticFeedback?.notificationOccurred("success");
   } catch (err) {
     tg.showAlert("Не вдалось зберегти аватар: " + err.message);
   }

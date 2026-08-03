@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Острів</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,14 +16,12 @@
   <div id="profile-screen" class="screen hidden">
     <div class="profile-card">
       <img id="avatar-img" class="avatar" src="" alt="avatar" />
-      <model-viewer id="avatar-3d" class="avatar-3d hidden" camera-controls auto-rotate
-        camera-orbit="0deg 90deg 2.2m" disable-zoom></model-viewer>
 
       <h1 id="welcome-title">Ласкаво просимо!</h1>
       <p id="display-name" class="display-name"></p>
       <p id="sub-text" class="sub-text"></p>
 
-      <button id="create-avatar-btn" class="secondary-btn">🧑‍🎨 Створити 3D-аватар</button>
+      <button id="create-avatar-btn" class="secondary-btn">🧑‍🎨 Створити аватар</button>
       <button id="continue-btn">Почати будувати острів</button>
     </div>
   </div>
@@ -34,9 +31,46 @@
     <p id="error-detail" class="error-detail"></p>
   </div>
 
-  <div id="avatar-creator-overlay" class="overlay hidden">
-    <button id="close-avatar-creator" class="overlay-close">✕</button>
-    <iframe id="avatar-creator-frame" class="avatar-creator-frame"></iframe>
+  <div id="avatar-builder-overlay" class="overlay hidden">
+    <div class="builder-header">
+      <span>Створи свого персонажа</span>
+      <button id="close-avatar-builder" class="overlay-close-inline">✕</button>
+    </div>
+
+    <div class="builder-preview">
+      <div id="avatar-preview"></div>
+    </div>
+
+    <div class="builder-controls">
+      <div class="builder-section">
+        <p class="builder-label">Тон шкіри</p>
+        <div id="skin-swatches" class="swatch-row"></div>
+      </div>
+
+      <div class="builder-section">
+        <p class="builder-label">Зачіска</p>
+        <div id="hair-style-row" class="pill-row"></div>
+      </div>
+
+      <div class="builder-section">
+        <p class="builder-label">Колір волосся</p>
+        <div id="hair-color-swatches" class="swatch-row"></div>
+      </div>
+
+      <div class="builder-section">
+        <p class="builder-label">Вираз обличчя</p>
+        <div id="mouth-style-row" class="pill-row"></div>
+      </div>
+
+      <div class="builder-section">
+        <label class="toggle-row">
+          <span>👓 Окуляри</span>
+          <input type="checkbox" id="glasses-toggle" />
+        </label>
+      </div>
+    </div>
+
+    <button id="save-avatar-btn" class="save-avatar-btn">Зберегти аватар</button>
   </div>
 
   <script src="app.js"></script>
