@@ -161,25 +161,9 @@ function initPlanet() {
     earthMat.needsUpdate = true;
   });
   loader.load("vendor/earth_normal_2048.jpg", (t) => { earthMat.normalMap = t; earthMat.needsUpdate = true; });
-  loader.load("vendor/earth_specular_2048.jpg", (t) => { earthMat.specularMap = t; earthMat.needsUpdate = true; });
 
   THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), earthMat);
   THREE_SCENE.add(THREE_GLOBE);
-
-  // Шар хмар — напівпрозора сфера трохи більшого радіуса
-  const cloudsMat = new THREE.MeshPhongMaterial({
-    transparent: true,
-    opacity: 0.45,
-    blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
-  });
-  loader.load("vendor/earth_clouds_1024.png", (t) => {
-    t.encoding = THREE.sRGBEncoding;
-    cloudsMat.map = t;
-    cloudsMat.needsUpdate = true;
-  });
-  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.012, 64, 64), cloudsMat);
-  THREE_SCENE.add(clouds);
 
   // Зірки навколо — щоб замість чорного фону був космос
   const starsPositions = [];
@@ -197,8 +181,7 @@ function initPlanet() {
   starsGeo.setAttribute("position", new THREE.Float32BufferAttribute(starsPositions, 3));
   THREE_SCENE.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.04 })));
 
-  // Атмосферне світіння (ефект Френеля) — блакитна оболонка навколо Землі,
-  // що робить її впізнаваною з космосу.
+  // Атмосферне світіння — дуже тонке, тільки на самих краях сфери
   const atmoMat = new THREE.ShaderMaterial({
     vertexShader: [
       "varying vec3 vNormal;",
@@ -210,8 +193,8 @@ function initPlanet() {
     fragmentShader: [
       "varying vec3 vNormal;",
       "void main(){",
-      "  float intensity = pow(0.65 - dot(vNormal, vec3(0,0,1.0)), 2.5);",
-      "  gl_FragColor = vec4(0.3,0.6,1.0,1.0) * intensity;",
+      "  float intensity = pow(0.82 - dot(vNormal, vec3(0,0,1.0)), 3.0);",
+      "  gl_FragColor = vec4(0.2,0.4,0.8,1.0) * intensity * 0.5;",
       "}"
     ].join("\n"),
     blending: THREE.AdditiveBlending,
@@ -219,7 +202,7 @@ function initPlanet() {
     transparent: true,
     depthWrite: false,
   });
-  THREE_SCENE.add(new THREE.Mesh(new THREE.SphereGeometry(1.12, 64, 64), atmoMat));
+  THREE_SCENE.add(new THREE.Mesh(new THREE.SphereGeometry(1.08, 64, 64), atmoMat));
 
   // Simple drag-to-rotate and wheel-zoom controls
   function onPointerDown(e){
@@ -238,9 +221,6 @@ function initPlanet() {
     THREE_GLOBE.rotation.y += dx * Math.PI * 2;
     THREE_GLOBE.rotation.x += dy * Math.PI * 2;
     THREE_GLOBE.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, THREE_GLOBE.rotation.x));
-    // хмари крутяться разом із планетою
-    clouds.rotation.y = THREE_GLOBE.rotation.y;
-    clouds.rotation.x = THREE_GLOBE.rotation.x;
   }
   function onPointerUp(){ drag.active = false; }
   planetCanvas.addEventListener('mousedown', onPointerDown);
@@ -268,11 +248,8 @@ function initPlanet() {
 
   function animate() {
     requestAnimationFrame(animate);
-    // idle rotation: планета + хмари повільно обертаються
-    if (!drag.active && THREE_GLOBE) {
-      THREE_GLOBE.rotation.y += 0.0015;
-      clouds.rotation.y += 0.0018;
-    }
+    // idle rotation: планета повільно обертається
+    if (!drag.active && THREE_GLOBE) THREE_GLOBE.rotation.y += 0.0015;
     THREE_RENDERER.render(THREE_SCENE, THREE_CAMERA);
   }
   animate();
