@@ -148,59 +148,23 @@ function initPlanet() {
   sun.position.set(5, 3, 5);
   THREE_SCENE.add(sun);
 
-  // Завантажуємо 3D-модель Землі (.glb) через GLTFLoader.
-  // Модель має UV-координати — накладаємо текстуру Землі з вендору.
-  THREE_GLOBE = null; // буде встановлено після завантаження моделі
+  // Сфера Землі з текстурою — надійний підхід, працює скрізь.
+  // sRGB-кодування: без нього JPEG-текстура виглядає сірою/тьмяною.
   const loader = new THREE.TextureLoader();
-  const gltfLoader = new THREE.GLTFLoader();
+  const earthMat = new THREE.MeshStandardMaterial({
+    roughness: 0.45,
+    metalness: 0.0,
+  });
+  loader.load("vendor/earth_atmos_2048.jpg", (t) => {
+    t.encoding = THREE.sRGBEncoding;
+    earthMat.map = t;
+    earthMat.needsUpdate = true;
+  });
+  loader.load("vendor/earth_normal_2048.jpg", (t) => { earthMat.normalMap = t; earthMat.needsUpdate = true; });
+  loader.load("vendor/earth_specular_2048.jpg", (t) => { earthMat.specularMap = t; earthMat.needsUpdate = true; });
 
-  function applyEarthTextures(mesh) {
-    const mat = new THREE.MeshStandardMaterial({
-      roughness: 0.45,
-      metalness: 0.0,
-    });
-    loader.load("vendor/earth_atmos_2048.jpg", (t) => {
-      t.encoding = THREE.sRGBEncoding;
-      mat.map = t;
-      mat.needsUpdate = true;
-    });
-    loader.load("vendor/earth_normal_2048.jpg", (t) => { mat.normalMap = t; mat.needsUpdate = true; });
-    loader.load("vendor/earth_specular_2048.jpg", (t) => { mat.specularMap = t; mat.needsUpdate = true; });
-    mesh.material = mat;
-  }
-
-  function fallbackSphere() {
-    const geo = new THREE.SphereGeometry(1, 64, 64);
-    const m = new THREE.Mesh(geo);
-    applyEarthTextures(m);
-    THREE_GLOBE = m;
-    THREE_SCENE.add(m);
-  }
-
-  gltfLoader.load(
-    "vendor/Earth.glb",
-    (gltf) => {
-      const model = gltf.scene;
-      const mesh = model.children.find((c) => c.isMesh) || model.children[0];
-      if (!mesh || !mesh.geometry) {
-        console.error("[3D] GLB: no mesh found, using fallback sphere");
-        fallbackSphere();
-        return;
-      }
-      // Масштабуємо з радіуса ~54 (3ds Max) до радіуса 1
-      const scale = 1.0 / 54.14;
-      model.scale.setScalar(scale);
-      applyEarthTextures(mesh);
-      THREE_GLOBE = model;
-      THREE_SCENE.add(model);
-      console.log("[3D] Earth.glb loaded OK");
-    },
-    undefined,
-    (err) => {
-      console.error("[3D] GLB load failed, fallback sphere:", err);
-      fallbackSphere();
-    }
-  );
+  THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), earthMat);
+  THREE_SCENE.add(THREE_GLOBE);
 
   // Шар хмар — напівпрозора сфера трохи більшого радіуса
   const cloudsMat = new THREE.MeshPhongMaterial({
