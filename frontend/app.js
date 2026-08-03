@@ -1,4 +1,4 @@
-const API_BASE_URL = "";
+const API_BASE_URL = "https://island-telegram-bot-backend.onrender.com";
 
 const tg = window.Telegram.WebApp;
 tg.ready();
@@ -28,11 +28,14 @@ function hapticTap() {
 const loadingScreen = document.getElementById("loading");
 const profileScreen = document.getElementById("profile-screen");
 const errorScreen = document.getElementById("error-screen");
+const planetScreen = document.getElementById("planet-screen");
+const planetCanvas = document.getElementById("planet-canvas");
+const planetBackBtn = document.getElementById("planet-back-btn");
 
 let currentProfile = null;
 
 function showScreen(screen) {
-  [loadingScreen, profileScreen, errorScreen].forEach((s) => s.classList.add("hidden"));
+  [loadingScreen, profileScreen, errorScreen, planetScreen].forEach((s) => s.classList.add("hidden"));
   screen.classList.remove("hidden");
 }
 
@@ -94,9 +97,92 @@ function renderProfile(profile) {
   showScreen(profileScreen);
 }
 
+let planetInitialized = false;
+let THREE_SCENE = null, THREE_CAMERA = null, THREE_RENDERER = null, THREE_CONTROLS = null, THREE_GLOBE = null;
+
+function initPlanet() {
+  if (planetInitialized) return;
+  const w = planetScreen.clientWidth || window.innerWidth;
+  const h = planetScreen.clientHeight || window.innerHeight;
+
+  THREE_SCENE = new THREE.Scene();
+  THREE_CAMERA = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+  THREE_CAMERA.position.set(0, 0, 3);
+
+  THREE_RENDERER = new THREE.WebGLRenderer({ canvas: planetCanvas, antialias: true, alpha: true });
+  THREE_RENDERER.setPixelRatio(window.devicePixelRatio || 1);
+  THREE_RENDERER.setSize(w, h);
+
+  // Lights
+  const amb = new THREE.AmbientLight(0xffffff, 0.6);
+  THREE_SCENE.add(amb);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+  dir.position.set(3, 3, 3);
+  THREE_SCENE.add(dir);
+
+  // Textures (diffuse + normal). If these fail to load, fallback to solid material.
+  const loader = new THREE.TextureLoader();
+  const diffuse = loader.load(
+    "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_daymap.jpg",
+    undefined,
+    undefined,
+    () => {}
+  );
+  let normal = null;
+  try {
+    normal = loader.load(
+      "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_normalmap.jpg"
+    );
+  } catch {}
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x3a86ff,
+    map: diffuse || null,
+    normalMap: normal || null,
+    roughness: 0.8,
+    metalness: 0.0,
+  });
+
+  THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
+  THREE_SCENE.add(THREE_GLOBE);
+
+  THREE_CONTROLS = new THREE.OrbitControls(THREE_CAMERA, THREE_RENDERER.domElement);
+  THREE_CONTROLS.enableDamping = true;
+  THREE_CONTROLS.dampingFactor = 0.05;
+  THREE_CONTROLS.enablePan = false;
+  THREE_CONTROLS.minDistance = 1.2;
+  THREE_CONTROLS.maxDistance = 6;
+
+  function onResize() {
+    const w2 = planetScreen.clientWidth || window.innerWidth;
+    const h2 = planetScreen.clientHeight || window.innerHeight;
+    THREE_CAMERA.aspect = w2 / h2;
+    THREE_CAMERA.updateProjectionMatrix();
+    THREE_RENDERER.setSize(w2, h2);
+  }
+  window.addEventListener("resize", onResize);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    // idle rotation
+    if (THREE_GLOBE) THREE_GLOBE.rotation.y += 0.002;
+    THREE_CONTROLS.update();
+    THREE_RENDERER.render(THREE_SCENE, THREE_CAMERA);
+  }
+  animate();
+
+  planetInitialized = true;
+}
+
+planetBackBtn.addEventListener("click", () => {
+  hapticTap();
+  showScreen(profileScreen);
+});
+
 document.getElementById("continue-btn").addEventListener("click", () => {
   hapticTap();
-  tg.showAlert("Далі тут буде острів 🏝️ (наступний етап розробки)");
+  initPlanet();
+  showScreen(planetScreen);
 });
 
 const SKIN_TONES = ["#FFDBB4", "#F1C27D", "#E0AC69", "#C68642", "#8D5524", "#5C3317"];

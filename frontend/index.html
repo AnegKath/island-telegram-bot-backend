@@ -31,6 +31,12 @@
     <p id="error-detail" class="error-detail"></p>
   </div>
 
+  <!-- 3D Planet Screen -->
+  <section id="planet-screen" class="hidden">
+    <button id="planet-back-btn" class="back-btn">Назад</button>
+    <canvas id="planet-canvas"></canvas>
+  </section>
+
   <div id="avatar-builder-overlay" class="overlay hidden">
     <div class="builder-header">
       <span>Створи свого персонажа</span>
@@ -72,6 +78,10 @@
 
     <button id="save-avatar-btn" class="save-avatar-btn">Зберегти аватар</button>
   </div>
+
+  <!-- three.js and controls for 3D planet -->
+  <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
 
   <script src="app.js"></script>
 </body>
