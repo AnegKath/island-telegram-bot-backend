@@ -110,7 +110,8 @@ function renderProfile(profile) {
 }
 
 let planetInitialized = false;
-let THREE_SCENE = null, THREE_CAMERA = null, THREE_RENDERER = null, THREE_CONTROLS = null, THREE_GLOBE = null;
+let THREE_SCENE = null, THREE_CAMERA = null, THREE_RENDERER = null, THREE_GLOBE = null;
+let drag = { active: false, x: 0, y: 0 };
 
 function initPlanet() {
   if (planetInitialized) return;
@@ -135,17 +136,12 @@ function initPlanet() {
 
   // Textures (diffuse + normal). If these fail to load, fallback to solid material.
   const loader = new THREE.TextureLoader();
-  const diffuse = loader.load(
-    "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_daymap.jpg",
-    undefined,
-    undefined,
-    () => {}
-  );
-  let normal = null;
+  let diffuse = null, normal = null;
   try {
-    normal = loader.load(
-      "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_normalmap.jpg"
-    );
+    diffuse = loader.load("https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_daymap.jpg");
+  } catch {}
+  try {
+    normal = loader.load("https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_normalmap.jpg");
   } catch {}
 
   const material = new THREE.MeshStandardMaterial({
@@ -159,12 +155,38 @@ function initPlanet() {
   THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
   THREE_SCENE.add(THREE_GLOBE);
 
-  THREE_CONTROLS = new THREE.OrbitControls(THREE_CAMERA, THREE_RENDERER.domElement);
-  THREE_CONTROLS.enableDamping = true;
-  THREE_CONTROLS.dampingFactor = 0.05;
-  THREE_CONTROLS.enablePan = false;
-  THREE_CONTROLS.minDistance = 1.2;
-  THREE_CONTROLS.maxDistance = 6;
+  // Simple drag-to-rotate and wheel-zoom controls
+  function onPointerDown(e){
+    drag.active = true;
+    drag.x = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    drag.y = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+  }
+  function onPointerMove(e){
+    if (!drag.active) return;
+    const nx = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    const ny = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+    const dx = (nx - drag.x) / (planetScreen.clientWidth || window.innerWidth);
+    const dy = (ny - drag.y) / (planetScreen.clientHeight || window.innerHeight);
+    drag.x = nx; drag.y = ny;
+    // Rotate globe: horizontal drag -> y rotation, vertical drag -> x rotation
+    THREE_GLOBE.rotation.y += dx * Math.PI * 2;
+    THREE_GLOBE.rotation.x += dy * Math.PI * 2;
+    THREE_GLOBE.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, THREE_GLOBE.rotation.x));
+  }
+  function onPointerUp(){ drag.active = false; }
+  planetCanvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', onPointerUp);
+  planetCanvas.addEventListener('touchstart', onPointerDown, {passive: true});
+  window.addEventListener('touchmove', onPointerMove, {passive: true});
+  window.addEventListener('touchend', onPointerUp, {passive: true});
+  planetCanvas.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const d = Math.sign(e.deltaY);
+    const cur = THREE_CAMERA.position.length();
+    const next = Math.max(1.2, Math.min(6, cur + d * 0.2));
+    THREE_CAMERA.position.setLength(next);
+  }, { passive: false });
 
   function onResize() {
     const w2 = planetScreen.clientWidth || window.innerWidth;
@@ -178,8 +200,7 @@ function initPlanet() {
   function animate() {
     requestAnimationFrame(animate);
     // idle rotation
-    if (THREE_GLOBE) THREE_GLOBE.rotation.y += 0.002;
-    THREE_CONTROLS.update();
+    if (!drag.active && THREE_GLOBE) THREE_GLOBE.rotation.y += 0.0015;
     THREE_RENDERER.render(THREE_SCENE, THREE_CAMERA);
   }
   animate();
