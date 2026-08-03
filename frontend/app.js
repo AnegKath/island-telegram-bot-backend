@@ -311,16 +311,33 @@ const SKIN_TONES = [
   "#996515","#704214","#4B3621"
 ];
 
-// 16 зачісок
+// 50 зачісок
 const HAIRSTYLES = [
-  { id: "buzz", label: "Базз" },{ id: "crop", label: "Кроп" },
-  { id: "short", label: "Коротка" },{ id: "medium", label: "Середня" },
-  { id: "long", label: "Довга" },{ id: "curly", label: "Кучері" },
-  { id: "afro", label: "Афро" },{ id: "mohawk", label: "Ірокез" },
-  { id: "bun", label: "Пучок" },{ id: "ponytail", label: "Хвіст" },
-  { id: "braids", label: "Косички" },{ id: "fade", label: "Фейд" },
-  { id: "undercut", label: "Андеркат" },{ id: "messy", label: "Хаотик" },
-  { id: "slick", label: "Гладко" },{ id: "sidepart", label: "Збоку" },
+  {id:"textured_crop",label:"Textured Crop"},{id:"french_crop",label:"French Crop"},
+  {id:"edgar",label:"Edgar Cut"},{id:"low_taper",label:"Low Taper Fade"},
+  {id:"mid_taper",label:"Mid Taper Fade"},{id:"high_taper",label:"High Taper Fade"},
+  {id:"low_skin",label:"Low Skin Fade"},{id:"mid_skin",label:"Mid Skin Fade"},
+  {id:"high_skin",label:"High Skin Fade"},{id:"burst_fade",label:"Burst Fade"},
+  {id:"drop_fade",label:"Drop Fade"},{id:"temple_fade",label:"Temple Fade"},
+  {id:"shadow_fade",label:"Shadow Fade"},{id:"crew_cut",label:"Crew Cut"},
+  {id:"buzz_cut",label:"Buzz Cut"},{id:"ivy",label:"Ivy League"},
+  {id:"side_part",label:"Side Part"},{id:"modern_side",label:"Modern Side Part"},
+  {id:"slick_back",label:"Slick Back"},{id:"comb_fade",label:"Comb Over Fade"},
+  {id:"curtains",label:"Curtains"},{id:"mid_flow",label:"Middle Part Flow"},
+  {id:"messy_fringe",label:"Messy Fringe"},{id:"textured_fringe",label:"Textured Fringe"},
+  {id:"wolf_cut",label:"Wolf Cut"},{id:"two_block",label:"Two Block Cut"},
+  {id:"modern_mullet",label:"Modern Mullet"},{id:"curly_fade",label:"Curly Top Fade"},
+  {id:"quiff",label:"Quiff"},{id:"pompadour",label:"Pompadour"},
+  {id:"faux_hawk",label:"Faux Hawk"},{id:"mohawk_fade",label:"Mohawk Fade"},
+  {id:"caesar",label:"Caesar Cut"},{id:"long_layered",label:"Long Layered"},
+  {id:"bro_flow",label:"Bro Flow"},{id:"undercut",label:"Undercut"},
+  {id:"disc_undercut",label:"Disconnected Undercut"},{id:"short_spike",label:"Short Spiky"},
+  {id:"messy_tex",label:"Messy Textured"},{id:"blowout",label:"Blowout Taper"},
+  {id:"fluffy",label:"Fluffy Hair"},{id:"taper_fringe",label:"Taper with Fringe"},
+  {id:"wavy_curtains",label:"Wavy Curtains"},{id:"slick_under",label:"Slick Back Undercut"},
+  {id:"tapered_buzz",label:"Tapered Buzz"},{id:"skin_tex_top",label:"Skin Fade Textured Top"},
+  {id:"low_curly",label:"Low Fade Curly Top"},{id:"mid_fringe",label:"Mid Fade Fringe"},
+  {id:"high_quiff",label:"High Fade Quiff"},{id:"biz_cut",label:"Modern Business Cut"},
 ];
 
 const HAIR_COLORS = [
@@ -493,43 +510,132 @@ function updateAvatar3D() {
     C.hairG.add(m);
   };
   switch(avatarConfig.hairStyle) {
-    case "buzz": add(new THREE.BoxGeometry(0.72,0.06,0.72),[0,Y,0]); break;
-    case "crop": add(new THREE.BoxGeometry(0.74,0.14,0.74),[0,Y+0.04,0]); break;
-    case "short": add(new THREE.BoxGeometry(0.76,0.2,0.76),[0,Y+0.06,0]); break;
-    case "medium": add(new THREE.BoxGeometry(0.78,0.32,0.78),[0,Y+0.12,0]); break;
-    case "long":
-      add(new THREE.BoxGeometry(0.78,0.25,0.78),[0,Y+0.1,0]);
-      add(new THREE.BoxGeometry(0.14,0.65,0.14),[-0.34,1.85,0]);
-      add(new THREE.BoxGeometry(0.14,0.65,0.14),[0.34,1.85,0]); break;
-    case "curly":
-      for(var i=0;i<9;i++){
-        var a=(i/9)*Math.PI*2;
-        add(new THREE.SphereGeometry(0.1,8,8),[Math.cos(a)*0.34,Y+0.08+Math.random()*0.12,Math.sin(a)*0.34]);
-      } break;
-    case "afro": add(new THREE.SphereGeometry(0.52,14,14),[0,Y-0.05,0]); break;
-    case "mohawk":
-      for(var i=0;i<5;i++) add(new THREE.ConeGeometry(0.055,0.24-i*0.02,6),[0,Y+i*0.05,-0.08+i*0.04]); break;
-    case "bun":
-      add(new THREE.BoxGeometry(0.76,0.18,0.76),[0,Y+0.05,0]);
-      add(new THREE.SphereGeometry(0.18,10,10),[0,Y+0.3,-0.18]); break;
-    case "ponytail":
-      add(new THREE.BoxGeometry(0.76,0.18,0.76),[0,Y+0.05,0]);
-      add(new THREE.BoxGeometry(0.1,0.55,0.1),[0,1.9,-0.38],[0.3,0,0]); break;
-    case "braids":
-      add(new THREE.BoxGeometry(0.76,0.18,0.76),[0,Y+0.05,0]);
-      [-0.22,0.22].forEach(function(x){for(var j=0;j<4;j++)
-        add(new THREE.SphereGeometry(0.055,6,6),[x,2.1-j*0.14,-0.12]);}); break;
-    case "fade":
-      add(new THREE.BoxGeometry(0.74,0.22,0.74),[0,Y+0.08,0]); break;
-    case "undercut": add(new THREE.BoxGeometry(0.55,0.28,0.76),[0,Y+0.1,0.04]); break;
-    case "messy":
+    // Crops
+    case "textured_crop": add(new THREE.BoxGeometry(0.74,0.16,0.7),[0,Y+0.05,0]); break;
+    case "french_crop": add(new THREE.BoxGeometry(0.76,0.14,0.68),[0,Y+0.04,0.02]); break;
+    case "edgar": add(new THREE.BoxGeometry(0.72,0.12,0.66),[0,Y+0.03,0.04]); break;
+    // Taper fades
+    case "low_taper": add(new THREE.BoxGeometry(0.74,0.18,0.74),[0,Y+0.05,0]); break;
+    case "mid_taper": add(new THREE.BoxGeometry(0.74,0.22,0.74),[0,Y+0.08,0]); break;
+    case "high_taper": add(new THREE.BoxGeometry(0.72,0.28,0.72),[0,Y+0.12,0]); break;
+    // Skin fades
+    case "low_skin": add(new THREE.BoxGeometry(0.72,0.14,0.72),[0,Y+0.03,0]); break;
+    case "mid_skin": add(new THREE.BoxGeometry(0.72,0.2,0.72),[0,Y+0.07,0]); break;
+    case "high_skin": add(new THREE.BoxGeometry(0.7,0.26,0.7),[0,Y+0.11,0]); break;
+    // Special fades
+    case "burst_fade":
+      add(new THREE.BoxGeometry(0.74,0.2,0.74),[0,Y+0.06,0]);
+      add(new THREE.SphereGeometry(0.15,8,8),[0,Y+0.22,-0.1]); break;
+    case "drop_fade": add(new THREE.BoxGeometry(0.74,0.2,0.78),[0,Y+0.06,-0.02]); break;
+    case "temple_fade": add(new THREE.BoxGeometry(0.72,0.16,0.72),[0,Y+0.04,0]); break;
+    case "shadow_fade": add(new THREE.BoxGeometry(0.74,0.18,0.74),[0,Y+0.05,0]); break;
+    // Classic cuts
+    case "crew_cut": add(new THREE.BoxGeometry(0.74,0.2,0.74),[0,Y+0.07,0]); break;
+    case "buzz_cut": add(new THREE.BoxGeometry(0.72,0.06,0.72),[0,Y,0]); break;
+    case "ivy":
+      add(new THREE.BoxGeometry(0.74,0.18,0.76),[0,Y+0.06,0.02]); break;
+    // Parts
+    case "side_part":
+      add(new THREE.BoxGeometry(0.48,0.2,0.76),[-0.1,Y+0.07,0]);
+      add(new THREE.BoxGeometry(0.28,0.1,0.76),[0.25,Y+0.02,0]); break;
+    case "modern_side":
+      add(new THREE.BoxGeometry(0.5,0.22,0.78),[-0.08,Y+0.08,0.01]);
+      add(new THREE.BoxGeometry(0.25,0.1,0.76),[0.26,Y+0.02,0]); break;
+    case "comb_fade":
+      add(new THREE.BoxGeometry(0.72,0.2,0.76),[0,Y+0.07,-0.01]); break;
+    // Curtains / flow
+    case "curtains":
+      add(new THREE.BoxGeometry(0.3,0.3,0.76),[-0.2,Y+0.12,0]);
+      add(new THREE.BoxGeometry(0.3,0.3,0.76),[0.2,Y+0.12,0]); break;
+    case "mid_flow":
+      add(new THREE.BoxGeometry(0.28,0.35,0.74),[-0.2,Y+0.14,0]);
+      add(new THREE.BoxGeometry(0.28,0.35,0.74),[0.2,Y+0.14,0]); break;
+    // Fringe
+    case "messy_fringe":
+      add(new THREE.BoxGeometry(0.76,0.2,0.74),[0,Y+0.06,0.04]);
+      add(new THREE.BoxGeometry(0.3,0.12,0.2),[0,Y+0.04,0.38]); break;
+    case "textured_fringe":
+      add(new THREE.BoxGeometry(0.74,0.18,0.72),[0,Y+0.05,0.03]);
+      add(new THREE.BoxGeometry(0.25,0.1,0.18),[0,Y+0.03,0.36]); break;
+    // Long / flow
+    case "wolf_cut":
+      add(new THREE.BoxGeometry(0.78,0.25,0.76),[0,Y+0.1,0]);
+      add(new THREE.BoxGeometry(0.12,0.5,0.12),[-0.34,1.9,0]);
+      add(new THREE.BoxGeometry(0.12,0.5,0.12),[0.34,1.9,0]); break;
+    case "long_layered":
+      add(new THREE.BoxGeometry(0.78,0.28,0.78),[0,Y+0.11,0]);
+      add(new THREE.BoxGeometry(0.14,0.6,0.14),[-0.34,1.85,0]);
+      add(new THREE.BoxGeometry(0.14,0.6,0.14),[0.34,1.85,0]); break;
+    case "bro_flow":
+      add(new THREE.BoxGeometry(0.76,0.22,0.8),[0,Y+0.08,-0.02]);
+      add(new THREE.BoxGeometry(0.1,0.45,0.1),[-0.32,1.92,0]);
+      add(new THREE.BoxGeometry(0.1,0.45,0.1),[0.32,1.92,0]); break;
+    case "two_block":
+      add(new THREE.BoxGeometry(0.78,0.3,0.76),[0,Y+0.12,0.02]); break;
+    case "modern_mullet":
+      add(new THREE.BoxGeometry(0.74,0.2,0.74),[0,Y+0.06,0]);
+      add(new THREE.BoxGeometry(0.12,0.55,0.12),[-0.3,1.88,-0.05]);
+      add(new THREE.BoxGeometry(0.12,0.55,0.12),[0.3,1.88,-0.05]); break;
+    // Curly / textured
+    case "curly_top":
+      for(var i=0;i<8;i++){var a=(i/8)*Math.PI*2;
+        add(new THREE.SphereGeometry(0.1,8,8),[Math.cos(a)*0.3,Y+0.1+Math.random()*0.1,Math.sin(a)*0.3]);} break;
+    case "curly_fade":
+      for(var i=0;i<7;i++){var a=(i/7)*Math.PI*2;
+        add(new THREE.SphereGeometry(0.09,8,8),[Math.cos(a)*0.28,Y+0.1+Math.random()*0.08,Math.sin(a)*0.28]);} break;
+    case "messy_tex":
       for(var i=0;i<7;i++) add(new THREE.BoxGeometry(0.18,0.12,0.18),
         [(Math.random()-0.5)*0.45,Y+Math.random()*0.2,(Math.random()-0.5)*0.45],
         [Math.random()*0.5,Math.random()*0.5,Math.random()*0.5]); break;
-    case "slick": add(new THREE.BoxGeometry(0.76,0.1,0.82),[0,Y+0.02,-0.02]); break;
-    case "sidepart":
-      add(new THREE.BoxGeometry(0.48,0.2,0.76),[-0.1,Y+0.07,0]);
-      add(new THREE.BoxGeometry(0.28,0.1,0.76),[0.25,Y+0.02,0]); break;
+    case "fluffy":
+      for(var i=0;i<10;i++){var a=(i/10)*Math.PI*2;
+        add(new THREE.SphereGeometry(0.11,8,8),[Math.cos(a)*0.32,Y+0.08+Math.random()*0.15,Math.sin(a)*0.32]);} break;
+    // Spiky / upward
+    case "quiff":
+      add(new THREE.BoxGeometry(0.72,0.22,0.7),[0,Y+0.08,0]);
+      add(new THREE.BoxGeometry(0.25,0.18,0.2),[0,Y+0.2,0.1]); break;
+    case "pompadour":
+      add(new THREE.BoxGeometry(0.7,0.28,0.72),[0,Y+0.12,0]);
+      add(new THREE.BoxGeometry(0.3,0.22,0.25),[0,Y+0.28,0.05]); break;
+    case "faux_hawk":
+      for(var i=0;i<4;i++) add(new THREE.ConeGeometry(0.05,0.22-i*0.02,6),[0,Y+i*0.06,0.02]); break;
+    case "mohawk_fade":
+      for(var i=0;i<5;i++) add(new THREE.ConeGeometry(0.05,0.22-i*0.02,6),[0,Y+i*0.05,-0.06+i*0.03]); break;
+    // Short / business
+    case "caesar": add(new THREE.BoxGeometry(0.72,0.1,0.68),[0,Y+0.02,0.02]); break;
+    case "short_spike":
+      for(var i=0;i<5;i++) add(new THREE.BoxGeometry(0.08,0.16,0.08),
+        [(Math.random()-0.5)*0.35,Y+Math.random()*0.1,(Math.random()-0.5)*0.3],
+        [Math.random()*0.3,0,Math.random()*0.3]); break;
+    case "biz_cut": add(new THREE.BoxGeometry(0.74,0.16,0.76),[0,Y+0.05,0.01]); break;
+    // Undercuts
+    case "undercut": add(new THREE.BoxGeometry(0.55,0.28,0.76),[0,Y+0.1,0.04]); break;
+    case "disc_undercut":
+      add(new THREE.BoxGeometry(0.6,0.3,0.74),[0,Y+0.13,0.03]); break;
+    case "slick_under":
+      add(new THREE.BoxGeometry(0.76,0.1,0.82),[0,Y+0.02,-0.02]); break;
+    case "slick_back": add(new THREE.BoxGeometry(0.76,0.1,0.82),[0,Y+0.02,-0.02]); break;
+    // Blowout / taper
+    case "blowout":
+      add(new THREE.BoxGeometry(0.78,0.32,0.78),[0,Y+0.14,0]); break;
+    case "taper_fringe":
+      add(new THREE.BoxGeometry(0.74,0.2,0.74),[0,Y+0.06,0]);
+      add(new THREE.BoxGeometry(0.22,0.1,0.16),[0,Y+0.04,0.35]); break;
+    case "wavy_curtains":
+      add(new THREE.BoxGeometry(0.32,0.32,0.76),[-0.18,Y+0.13,0]);
+      add(new THREE.BoxGeometry(0.32,0.32,0.76),[0.18,Y+0.13,0]); break;
+    case "tapered_buzz": add(new THREE.BoxGeometry(0.72,0.08,0.72),[0,Y+0.01,0]); break;
+    case "skin_tex_top":
+      add(new THREE.BoxGeometry(0.74,0.2,0.72),[0,Y+0.07,0.01]); break;
+    case "low_curly":
+      for(var i=0;i<7;i++){var a=(i/7)*Math.PI*2;
+        add(new THREE.SphereGeometry(0.09,8,8),[Math.cos(a)*0.28,Y+0.08+Math.random()*0.08,Math.sin(a)*0.28]);} break;
+    case "mid_fringe":
+      add(new THREE.BoxGeometry(0.74,0.2,0.74),[0,Y+0.07,0]);
+      add(new THREE.BoxGeometry(0.2,0.08,0.14),[0,Y+0.05,0.34]); break;
+    case "high_quiff":
+      add(new THREE.BoxGeometry(0.7,0.26,0.7),[0,Y+0.11,0]);
+      add(new THREE.BoxGeometry(0.22,0.2,0.18),[0,Y+0.24,0.08]); break;
   }
 }
 
