@@ -436,3 +436,155 @@ body {
     rgba(46, 125, 50, 0.8) 100%
   );
 }
+
+/* ═══════════════════════════════════════════════
+   3D AVATAR BUILDER — повний ріст, ігровий стиль
+   ═══════════════════════════════════════════════ */
+
+.builder-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.builder-preview-full {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
+#avatar-3d-canvas {
+  border-radius: 16px;
+  background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+}
+
+.builder-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(128,128,128,0.2);
+}
+
+.builder-tab {
+  flex: 1;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  color: var(--tg-hint, #999);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.builder-tab.active {
+  color: #2E7D32;
+  border-bottom-color: #2E7D32;
+}
+
+.builder-tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.builder-tab-content.active {
+  display: block;
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
+}
+
+.item-grid .skin-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.item-grid .skin-swatch.selected {
+  border-color: #2E7D32;
+  transform: scale(1.15);
+}
+
+.items-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--tg-secondary-bg, #f0f0f0);
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.item-card.selected {
+  border-color: #2E7D32;
+}
+
+.item-card-color {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.item-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tg-text);
+}
+
+.item-card-brand {
+  font-size: 11px;
+  color: var(--tg-hint, #999);
+}
+
+.filter-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.filter-chip {
+  padding: 5px 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--tg-secondary-bg, #ddd);
+  background: transparent;
+  color: var(--tg-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip.active {
+  background: #2E7D32;
+  color: #fff;
+  border-color: #2E7D32;
+}

@@ -70,36 +70,43 @@
       <button id="close-avatar-builder" class="overlay-close-inline">✕</button>
     </div>
 
-    <div class="builder-preview">
-      <canvas id="avatar-3d-canvas" width="200" height="200"></canvas>
-    </div>
-
-    <div class="builder-controls">
-      <div class="builder-section">
-        <p class="builder-label">Тон шкіри</p>
-        <div id="skin-swatches" class="swatch-row"></div>
+    <div class="builder-layout">
+      <div class="builder-preview-full">
+        <canvas id="avatar-3d-canvas" width="300" height="420"></canvas>
       </div>
 
-      <div class="builder-section">
-        <p class="builder-label">Зачіска</p>
-        <div id="hair-style-row" class="pill-row"></div>
+      <div class="builder-tabs">
+        <button class="builder-tab active" data-tab="skin">Шкіра</button>
+        <button class="builder-tab" data-tab="hair">Зачіска</button>
+        <button class="builder-tab" data-tab="tops">Кофта</button>
+        <button class="builder-tab" data-tab="pants">Штани</button>
+        <button class="builder-tab" data-tab="shoes">Взуття</button>
       </div>
 
-      <div class="builder-section">
-        <p class="builder-label">Колір волосся</p>
-        <div id="hair-color-swatches" class="swatch-row"></div>
+      <div class="builder-tab-content active" id="tab-skin">
+        <div id="skin-grid" class="item-grid"></div>
       </div>
 
-      <div class="builder-section">
-        <p class="builder-label">Вираз обличчя</p>
-        <div id="mouth-style-row" class="pill-row"></div>
+      <div class="builder-tab-content" id="tab-hair">
+        <div id="hair-styles-list" class="items-scroll"></div>
+        <p class="builder-label" style="margin-top:12px">Колір волосся</p>
+        <div id="hair-color-grid" class="item-grid"></div>
       </div>
 
-      <div class="builder-section">
-        <label class="toggle-row">
-          <span>👓 Окуляри</span>
-          <input type="checkbox" id="glasses-toggle" />
-        </label>
+      <div class="builder-tab-content" id="tab-tops">
+        <div class="filter-row" id="top-brand-filter"></div>
+        <div class="filter-row" id="top-fit-filter"></div>
+        <div id="tops-list" class="items-scroll"></div>
+      </div>
+
+      <div class="builder-tab-content" id="tab-pants">
+        <div class="filter-row" id="pants-brand-filter"></div>
+        <div id="pants-list" class="items-scroll"></div>
+      </div>
+
+      <div class="builder-tab-content" id="tab-shoes">
+        <div class="filter-row" id="shoes-brand-filter"></div>
+        <div id="shoes-list" class="items-scroll"></div>
       </div>
     </div>
 
