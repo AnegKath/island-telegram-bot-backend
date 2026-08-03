@@ -136,11 +136,15 @@ function initPlanet() {
   }
   THREE_RENDERER.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   THREE_RENDERER.setSize(w, h);
+  // sRGB-кодування: без нього JPEG-текстура завантажиться як Linear і
+  // Земля виглядає сірою/тьмяною замість яскравою з сушами та океанами.
+  if (THREE.sRGBEncoding) THREE_RENDERER.outputEncoding = THREE.sRGBEncoding;
 
   // Lights
-  const amb = new THREE.AmbientLight(0xffffff, 0.4);
+  // Освітлення: достатньо яскраве, щоб суходоли та океани були чітко видно
+  const amb = new THREE.AmbientLight(0xffffff, 0.65);
   THREE_SCENE.add(amb);
-  const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+  const sun = new THREE.DirectionalLight(0xffffff, 0.9);
   sun.position.set(5, 3, 5);
   THREE_SCENE.add(sun);
 
@@ -148,11 +152,16 @@ function initPlanet() {
   // WebView без зовнішніх CDN. map підставляємо лише коли файл завантажився.
   const material = new THREE.MeshStandardMaterial({
     color: 0xffffff,
-    roughness: 0.6,
+    roughness: 0.45,
     metalness: 0.0,
   });
   const loader = new THREE.TextureLoader();
-  loader.load("vendor/earth_atmos_2048.jpg", (t) => { material.map = t; material.needsUpdate = true; });
+  // sRGB-кодування для кольорових текстур — без нього суша зливається з океаном
+  loader.load("vendor/earth_atmos_2048.jpg", (t) => {
+    t.encoding = THREE.sRGBEncoding;
+    material.map = t;
+    material.needsUpdate = true;
+  });
   loader.load("vendor/earth_normal_2048.jpg", (t) => { material.normalMap = t; material.needsUpdate = true; });
   loader.load("vendor/earth_specular_2048.jpg", (t) => { material.specularMap = t; material.needsUpdate = true; });
 
@@ -162,11 +171,15 @@ function initPlanet() {
   // Шар хмар — напівпрозора сфера трохи більшого радіуса
   const cloudsMat = new THREE.MeshPhongMaterial({
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.45,
     blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
   });
-  loader.load("vendor/earth_clouds_1024.png", (t) => { cloudsMat.map = t; cloudsMat.needsUpdate = true; });
+  loader.load("vendor/earth_clouds_1024.png", (t) => {
+    t.encoding = THREE.sRGBEncoding;
+    cloudsMat.map = t;
+    cloudsMat.needsUpdate = true;
+  });
   const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.012, 64, 64), cloudsMat);
   THREE_SCENE.add(clouds);
 
@@ -185,6 +198,30 @@ function initPlanet() {
   const starsGeo = new THREE.BufferGeometry();
   starsGeo.setAttribute("position", new THREE.Float32BufferAttribute(starsPositions, 3));
   THREE_SCENE.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.04 })));
+
+  // Атмосферне світіння (ефект Френеля) — блакитна оболонка навколо Землі,
+  // що робить її впізнаваною з космосу.
+  const atmoMat = new THREE.ShaderMaterial({
+    vertexShader: [
+      "varying vec3 vNormal;",
+      "void main(){",
+      "  vNormal = normalize(normalMatrix * normal);",
+      "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);",
+      "}"
+    ].join("\n"),
+    fragmentShader: [
+      "varying vec3 vNormal;",
+      "void main(){",
+      "  float intensity = pow(0.65 - dot(vNormal, vec3(0,0,1.0)), 2.5);",
+      "  gl_FragColor = vec4(0.3,0.6,1.0,1.0) * intensity;",
+      "}"
+    ].join("\n"),
+    blending: THREE.AdditiveBlending,
+    side: THREE.FrontSide,
+    transparent: true,
+    depthWrite: false,
+  });
+  THREE_SCENE.add(new THREE.Mesh(new THREE.SphereGeometry(1.12, 64, 64), atmoMat));
 
   // Simple drag-to-rotate and wheel-zoom controls
   function onPointerDown(e){
