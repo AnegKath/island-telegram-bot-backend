@@ -87,6 +87,7 @@
   <script src="vendor/three.min.js"></script>
   <script src="vendor/OrbitControls.js"></script>
 
-  <script defer src="app.js"></script>
+  <!-- Load app.js last, without defer, so THREE is guaranteed -->
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,5 +1,17 @@
 const API_BASE_URL = "https://island-telegram-bot-backend.onrender.com";
 
+// Global error log to surface issues in WebView
+window.onerror = function(msg, src, line, col, err){
+  try {
+    console.error('[GLOBAL ERROR]', msg, src, line, col, err);
+    const el = document.getElementById('error-detail');
+    if (el) {
+      el.textContent = String(msg || err?.message || 'Unknown error');
+      document.getElementById('error-screen')?.classList.remove('hidden');
+    }
+  } catch {}
+};
+
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
@@ -178,6 +190,10 @@ function initPlanet() {
 planetBackBtn.addEventListener("click", () => {
   hapticTap();
   showScreen(profileScreen);
+});
+
+window.addEventListener("load", () => {
+  console.log("[APP] window loaded, THREE:", !!window.THREE);
 });
 
 document.getElementById("continue-btn").addEventListener("click", () => {
