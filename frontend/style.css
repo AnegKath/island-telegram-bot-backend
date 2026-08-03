@@ -276,7 +276,8 @@ body {
 #planet-screen {
   position: fixed;
   inset: 0;
-  background: var(--tg-bg, #000);
+  /* Космос незалежно від теми Telegram — завжди темний фон */
+  background: radial-gradient(circle at 50% 40%, #0d1330 0%, #05070f 60%, #000 100%);
   z-index: 900; /* below avatar overlay */
 }
 #planet-canvas {

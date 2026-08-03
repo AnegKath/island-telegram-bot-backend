@@ -125,41 +125,66 @@ function initPlanet() {
   THREE_CAMERA = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
   THREE_CAMERA.position.set(0, 0, 3);
 
-  THREE_RENDERER = new THREE.WebGLRenderer({ canvas: planetCanvas, antialias: true, alpha: true });
-  THREE_RENDERER.setPixelRatio(window.devicePixelRatio || 1);
+  try {
+    THREE_RENDERER = new THREE.WebGLRenderer({ canvas: planetCanvas, antialias: true, alpha: true });
+  } catch (err) {
+    console.error("[3D] WebGL unavailable:", err);
+    document.getElementById("error-detail").textContent =
+      "3D-графіка не підтримується тут. Спробуй оновити Telegram або відкрити застосунок в іншому клієнті.";
+    showScreen(errorScreen);
+    return;
+  }
+  THREE_RENDERER.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   THREE_RENDERER.setSize(w, h);
 
   // Lights
-  const amb = new THREE.AmbientLight(0xffffff, 0.6);
+  const amb = new THREE.AmbientLight(0xffffff, 0.4);
   THREE_SCENE.add(amb);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-  dir.position.set(3, 3, 3);
-  THREE_SCENE.add(dir);
+  const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+  sun.position.set(5, 3, 5);
+  THREE_SCENE.add(sun);
 
-  // Textures (diffuse + normal). Завантаження асинхронне — map/normalMap
-  // підставляємо лише коли зображення реально завантажилось, інакше лишається
-  // базовий колір (а не чорна порожня текстура).
+  // Текстури Землі вендорені локально (vendor/) — надійно працюють у Telegram
+  // WebView без зовнішніх CDN. map підставляємо лише коли файл завантажився.
   const material = new THREE.MeshStandardMaterial({
-    color: 0x3a86ff,
-    roughness: 0.8,
+    color: 0xffffff,
+    roughness: 0.6,
     metalness: 0.0,
   });
   const loader = new THREE.TextureLoader();
-  loader.load(
-    "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_daymap.jpg",
-    (t) => { material.map = t; material.needsUpdate = true; },
-    undefined,
-    () => console.warn("[3D] diffuse texture failed to load, using base color")
-  );
-  loader.load(
-    "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_normalmap.jpg",
-    (t) => { material.normalMap = t; material.needsUpdate = true; },
-    undefined,
-    () => console.warn("[3D] normal texture failed to load")
-  );
+  loader.load("vendor/earth_atmos_2048.jpg", (t) => { material.map = t; material.needsUpdate = true; });
+  loader.load("vendor/earth_normal_2048.jpg", (t) => { material.normalMap = t; material.needsUpdate = true; });
+  loader.load("vendor/earth_specular_2048.jpg", (t) => { material.specularMap = t; material.needsUpdate = true; });
 
-  THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
+  THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
   THREE_SCENE.add(THREE_GLOBE);
+
+  // Шар хмар — напівпрозора сфера трохи більшого радіуса
+  const cloudsMat = new THREE.MeshPhongMaterial({
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  loader.load("vendor/earth_clouds_1024.png", (t) => { cloudsMat.map = t; cloudsMat.needsUpdate = true; });
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.012, 64, 64), cloudsMat);
+  THREE_SCENE.add(clouds);
+
+  // Зірки навколо — щоб замість чорного фону був космос
+  const starsPositions = [];
+  for (let i = 0; i < 500; i++) {
+    const r = 9 + Math.random() * 12;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    starsPositions.push(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+  }
+  const starsGeo = new THREE.BufferGeometry();
+  starsGeo.setAttribute("position", new THREE.Float32BufferAttribute(starsPositions, 3));
+  THREE_SCENE.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.04 })));
 
   // Simple drag-to-rotate and wheel-zoom controls
   function onPointerDown(e){
@@ -178,6 +203,9 @@ function initPlanet() {
     THREE_GLOBE.rotation.y += dx * Math.PI * 2;
     THREE_GLOBE.rotation.x += dy * Math.PI * 2;
     THREE_GLOBE.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, THREE_GLOBE.rotation.x));
+    // хмари крутяться разом із планетою
+    clouds.rotation.y = THREE_GLOBE.rotation.y;
+    clouds.rotation.x = THREE_GLOBE.rotation.x;
   }
   function onPointerUp(){ drag.active = false; }
   planetCanvas.addEventListener('mousedown', onPointerDown);
@@ -205,8 +233,11 @@ function initPlanet() {
 
   function animate() {
     requestAnimationFrame(animate);
-    // idle rotation
-    if (!drag.active && THREE_GLOBE) THREE_GLOBE.rotation.y += 0.0015;
+    // idle rotation: планета + хмари повільно обертаються
+    if (!drag.active && THREE_GLOBE) {
+      THREE_GLOBE.rotation.y += 0.0015;
+      clouds.rotation.y += 0.0018;
+    }
     THREE_RENDERER.render(THREE_SCENE, THREE_CAMERA);
   }
   animate();
@@ -233,8 +264,10 @@ document.getElementById("continue-btn").addEventListener("click", () => {
       showScreen(errorScreen);
       return;
     }
-    initPlanet();
+    // Спочатку показуємо екран планети, щоб canvas мав реальні розміри,
+    // потім ініціалізуємо 3D-сцену в наступному кадрі.
     showScreen(planetScreen);
+    requestAnimationFrame(() => initPlanet());
   } catch (e) {
     console.error("[3D] init error:", e);
     document.getElementById("error-detail").textContent = String(e?.message || e);
