@@ -102,8 +102,9 @@ let THREE_SCENE = null, THREE_CAMERA = null, THREE_RENDERER = null, THREE_CONTRO
 
 function initPlanet() {
   if (planetInitialized) return;
-  const w = planetScreen.clientWidth || window.innerWidth;
-  const h = planetScreen.clientHeight || window.innerHeight;
+  const w = (planetScreen && planetScreen.clientWidth) ? planetScreen.clientWidth : window.innerWidth;
+  const h = (planetScreen && planetScreen.clientHeight) ? planetScreen.clientHeight : window.innerHeight;
+  console.log("[3D] initPlanet with size", w, h);
 
   THREE_SCENE = new THREE.Scene();
   THREE_CAMERA = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
@@ -180,9 +181,22 @@ planetBackBtn.addEventListener("click", () => {
 });
 
 document.getElementById("continue-btn").addEventListener("click", () => {
-  hapticTap();
-  initPlanet();
-  showScreen(planetScreen);
+  try {
+    console.log("[UI] Continue clicked");
+    hapticTap();
+    if (!window.THREE) {
+      console.error("[3D] THREE not loaded");
+      document.getElementById("error-detail").textContent = "3D бібліотека не завантажилась. Онови сторінку або спробуй ще раз.";
+      showScreen(errorScreen);
+      return;
+    }
+    initPlanet();
+    showScreen(planetScreen);
+  } catch (e) {
+    console.error("[3D] init error:", e);
+    document.getElementById("error-detail").textContent = String(e?.message || e);
+    showScreen(errorScreen);
+  }
 });
 
 const SKIN_TONES = ["#FFDBB4", "#F1C27D", "#E0AC69", "#C68642", "#8D5524", "#5C3317"];
