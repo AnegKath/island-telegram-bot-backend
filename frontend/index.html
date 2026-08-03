@@ -85,6 +85,14 @@
 
   <!-- three.js and controls vendored locally to avoid CDN blocking -->
   <script src="vendor/three.min.js"></script>
+  <!-- jsm module converted for non-module use via inline shim -->
+  <script>
+    // Shim to attach OrbitControls to global THREE when using jsm build
+    (function(){
+      var exports = {};
+      var module = { exports: {} };
+    })();
+  </script>
   <script src="vendor/OrbitControls.js"></script>
 
   <!-- Load app.js last, without defer, so THREE is guaranteed -->
