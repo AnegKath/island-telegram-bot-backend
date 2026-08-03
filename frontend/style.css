@@ -143,13 +143,6 @@ body {
   flex-direction: column;
 }
 
-.overlay.centered {
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.7);
-}
-
 .overlay-close {
   position: absolute;
   top: 16px;
@@ -169,73 +162,6 @@ body {
   width: 100%;
   height: 100%;
   border: none;
-}
-
-.fallback-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(0, 0, 0, 0.75);
-  z-index: 1001;
-}
-
-.fallback-link {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  background: #fff;
-  color: #1a1a1a;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.paste-card {
-  margin: auto;
-  background: var(--tg-secondary-bg, #f0f0f0);
-  border-radius: 20px;
-  padding: 24px;
-  width: 100%;
-  max-width: 340px;
-  text-align: left;
-}
-
-.paste-card h2 {
-  font-size: 18px;
-  margin-bottom: 12px;
-  color: var(--tg-text, #000);
-}
-
-.paste-card .sub-text {
-  text-align: left;
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
-
-#avatar-url-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: 2px solid var(--tg-hint, #999);
-  background: var(--tg-bg, #fff);
-  color: var(--tg-text, #000);
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-#save-pasted-avatar-btn {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 14px;
-  background: var(--tg-button, #56c596);
-  color: var(--tg-button-text, #fff);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .error-detail {

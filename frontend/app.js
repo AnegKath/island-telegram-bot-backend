@@ -1,5 +1,3 @@
-// Бекенд тепер роздає і фронтенд, і API з одного порту - тому шлях відносний,
-// адресу міняти більше не треба навіть коли міняється ngrok-посилання
 const API_BASE_URL = "";
 
 // Субдомен Ready Player Me. "demo" - публічний тестовий, підходить для розробки.
@@ -9,11 +7,8 @@ const RPM_SUBDOMAIN = "demo";
 
 const tg = window.Telegram.WebApp;
 tg.ready();
-tg.expand(); // розгортає Mini App на весь екран
+tg.expand();
 
-// --- Робимо застосунок максимально "рідним" для Telegram, не схожим на сайт ---
-
-// Підлаштовуємось під тему юзера (темна/світла), як робить сам Telegram
 function applyTelegramTheme() {
   const p = tg.themeParams;
   if (!p) return;
@@ -117,17 +112,17 @@ document.getElementById("continue-btn").addEventListener("click", () => {
   tg.showAlert("Далі тут буде острів 🏝️ (наступний етап розробки)");
 });
 
-// --- Конструктор 3D-аватара (Ready Player Me) ---
+// --- Конструктор 3D-аватара (Ready Player Me) - ручний вибір зовнішності ---
 
 const avatarCreatorOverlay = document.getElementById("avatar-creator-overlay");
 const avatarCreatorFrame = document.getElementById("avatar-creator-frame");
-const pasteAvatarOverlay = document.getElementById("paste-avatar-overlay");
-const avatarUrlInput = document.getElementById("avatar-url-input");
 
 function openAvatarCreator() {
   hapticTap();
+  // selfie=false прибирає опцію фотографування - юзер одразу обирає готовий
+  // шаблон зовнішності і налаштовує його вручну (обличчя, зачіска, одяг).
   avatarCreatorFrame.src =
-    `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?frameApi&quickStart=true&clearCache&language=uk`;
+    `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?frameApi&clearCache&language=uk&selfie=false`;
   avatarCreatorOverlay.classList.remove("hidden");
 }
 
@@ -154,6 +149,9 @@ async function saveAvatarUrl(avatarUrl) {
   tg.HapticFeedback?.notificationOccurred("success");
 }
 
+// Ready Player Me спілкується з батьківською сторінкою через postMessage.
+// Слухаємо подію "v1.avatar.exported" - вона приходить, коли юзер закінчив
+// вибирати зовнішність вручну з галереї шаблонів, і містить посилання на .glb модель.
 window.addEventListener("message", async (event) => {
   if (!event.origin.includes("readyplayer.me")) return;
 
@@ -172,43 +170,6 @@ window.addEventListener("message", async (event) => {
   try {
     await saveAvatarUrl(avatarUrl);
     closeAvatarCreator();
-  } catch (err) {
-    tg.showAlert("Не вдалось зберегти аватар: " + err.message);
-  }
-});
-
-// --- Запасний шлях: конструктор у зовнішньому браузері (коли камера в iframe не працює) ---
-
-document.getElementById("open-external-btn").addEventListener("click", () => {
-  hapticTap();
-  closeAvatarCreator();
-
-  const externalUrl =
-    `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?quickStart=true&clearCache&language=uk`;
-  tg.openLink(externalUrl);
-
-  pasteAvatarOverlay.classList.remove("hidden");
-});
-
-document.getElementById("close-paste-avatar").addEventListener("click", () => {
-  hapticTap();
-  pasteAvatarOverlay.classList.add("hidden");
-  avatarUrlInput.value = "";
-});
-
-document.getElementById("save-pasted-avatar-btn").addEventListener("click", async () => {
-  hapticTap();
-  const url = avatarUrlInput.value.trim();
-
-  if (!url || !url.includes("readyplayer.me")) {
-    tg.showAlert("Схоже, це не посилання на аватар з Ready Player Me. Перевір і встав ще раз.");
-    return;
-  }
-
-  try {
-    await saveAvatarUrl(url);
-    pasteAvatarOverlay.classList.add("hidden");
-    avatarUrlInput.value = "";
   } catch (err) {
     tg.showAlert("Не вдалось зберегти аватар: " + err.message);
   }

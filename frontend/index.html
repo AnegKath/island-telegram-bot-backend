@@ -36,25 +36,7 @@
 
   <div id="avatar-creator-overlay" class="overlay hidden">
     <button id="close-avatar-creator" class="overlay-close">✕</button>
-    <iframe id="avatar-creator-frame" class="avatar-creator-frame" allow="camera *; microphone *"></iframe>
-
-    <div class="fallback-bar">
-      <button id="open-external-btn" class="fallback-link">📷 Не працює камера? Відкрити в браузері</button>
-    </div>
-  </div>
-
-  <div id="paste-avatar-overlay" class="overlay centered hidden">
-    <button id="close-paste-avatar" class="overlay-close">✕</button>
-    <div class="paste-card">
-      <h2>Встав посилання на аватар</h2>
-      <p class="sub-text">
-        1. Відкриється браузер — сфоткай обличчя або обери вигляд вручну<br>
-        2. Коли конструктор покаже готовий аватар, натисни "Copy Avatar URL" (або скопіюй посилання зі сторінки)<br>
-        3. Повернись сюди і встав посилання нижче
-      </p>
-      <input id="avatar-url-input" type="url" placeholder="https://models.readyplayer.me/....glb" />
-      <button id="save-pasted-avatar-btn">Зберегти аватар</button>
-    </div>
+    <iframe id="avatar-creator-frame" class="avatar-creator-frame"></iframe>
   </div>
 
   <script src="app.js"></script>

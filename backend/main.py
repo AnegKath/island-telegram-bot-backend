@@ -19,16 +19,11 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
-# Скільки дефолтних аватарок лежить в static/avatars (avatar1.svg ... avatar6.svg)
 AVATAR_COUNT = 6
 
-# Абсолютні шляхи, обчислені від розташування ЦЬОГО файлу (main.py),
-# а не від того, з якої папки запущено процес. Це важливо, бо на Render
-# (і взагалі на будь-якому хостингу) команда запускається з кореня репозиторію,
-# а не з backend/ - тому відносні шляхи типу "static" або "../frontend" ламались.
-BASE_DIR = Path(__file__).resolve().parent          # .../backend
-STATIC_DIR = BASE_DIR / "static"                     # .../backend/static
-FRONTEND_DIR = BASE_DIR.parent / "frontend"           # .../frontend
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
 app = FastAPI(title="Island MVP API")
 
@@ -40,19 +35,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.middleware("http")
-async def add_permissions_policy_header(request, call_next):
-    """
-    Дозволяємо доступ до камери/мікрофону для вкладених iframe (Ready Player Me).
-    Без цього заголовка сучасні браузери блокують getUserMedia у вкладеному iframe,
-    навіть якщо на самому iframe стоїть atribut allow="camera".
-    """
-    response = await call_next(request)
-    response.headers["Permissions-Policy"] = "camera=*, microphone=*"
-    return response
-
-# Роздаємо статичні файли (аватарки) напряму, щоб фронтенд міг їх завантажити
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -62,20 +44,11 @@ async def on_startup():
 
 
 def make_tag(telegram_id: int) -> str:
-    """Генерує стабільний 4-значний тег з telegram_id, щоб він завжди був однаковий для юзера."""
     return str(telegram_id % 9000 + 1000)
 
 
 @app.post("/api/auth/init", response_model=ProfileResponse)
 async def auth_init(payload: InitRequest, session: AsyncSession = Depends(get_session)):
-    """
-    Головний ендпоінт першого входу.
-    Фронтенд викликає це одразу при відкритті Mini App, передаючи Telegram.WebApp.initData.
-
-    1. Перевіряє підпис initData (щоб ніхто не підробив дані юзера)
-    2. Якщо юзер вже є в базі - повертає його профіль
-    3. Якщо юзера немає - створює новий профіль з нікнеймом з Telegram і випадковою аватаркою
-    """
     if not BOT_TOKEN:
         raise HTTPException(status_code=500, detail="BOT_TOKEN не налаштовано на сервері")
 
@@ -88,13 +61,11 @@ async def auth_init(payload: InitRequest, session: AsyncSession = Depends(get_se
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Не вдалось визначити Telegram ID")
 
-    # Шукаємо чи вже є такий юзер
     result = await session.execute(select(User).where(User.telegram_id == telegram_id))
     user = result.scalar_one_or_none()
 
     is_new = False
     if user is None:
-        # Новий юзер - створюємо профіль з дефолтними значеннями
         is_new = True
         avatar_number = random.randint(1, AVATAR_COUNT)
         user = User(
@@ -121,11 +92,6 @@ async def auth_init(payload: InitRequest, session: AsyncSession = Depends(get_se
 
 @app.post("/api/profile/avatar", response_model=ProfileResponse)
 async def update_avatar(payload: AvatarUpdateRequest, session: AsyncSession = Depends(get_session)):
-    """
-    Викликається фронтендом одразу після того, як юзер закінчив створювати
-    3D-аватар у вбудованому конструкторі Ready Player Me.
-    Зберігає посилання на .glb модель замість дефолтної SVG-заглушки.
-    """
     if not BOT_TOKEN:
         raise HTTPException(status_code=500, detail="BOT_TOKEN не налаштовано на сервері")
 
@@ -162,6 +128,4 @@ async def health():
     return {"status": "ok"}
 
 
-# Роздаємо фронтенд (index.html, app.js, style.css) з того ж порту, що і API.
-# Це має бути ОСТАННІМ рядком - інакше він "перехопить" запити, призначені для /api/...
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
