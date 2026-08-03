@@ -1,0 +1,16 @@
+# Secrets — ніколи не комітити реальні токени
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Локальна SQLite база (створюється при запуску)
+*.db
+
+# OS / редактор
+.DS_Store
+
+# Локальні налаштування Claude Code
+.claude/

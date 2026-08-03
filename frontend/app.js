@@ -1,4 +1,6 @@
-const API_BASE_URL = "https://island-telegram-bot-backend.onrender.com";
+// API живе на тому самому origin, що й фронтенд (бекенд сам роздає HTML/CSS/JS).
+// Відносний шлях працює і локально, і на Render — не треба міняти при деплої.
+const API_BASE_URL = "";
 
 // Global error log to surface issues in WebView
 window.onerror = function(msg, src, line, col, err){
@@ -134,23 +136,27 @@ function initPlanet() {
   dir.position.set(3, 3, 3);
   THREE_SCENE.add(dir);
 
-  // Textures (diffuse + normal). If these fail to load, fallback to solid material.
-  const loader = new THREE.TextureLoader();
-  let diffuse = null, normal = null;
-  try {
-    diffuse = loader.load("https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_daymap.jpg");
-  } catch {}
-  try {
-    normal = loader.load("https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_normalmap.jpg");
-  } catch {}
-
+  // Textures (diffuse + normal). Завантаження асинхронне — map/normalMap
+  // підставляємо лише коли зображення реально завантажилось, інакше лишається
+  // базовий колір (а не чорна порожня текстура).
   const material = new THREE.MeshStandardMaterial({
     color: 0x3a86ff,
-    map: diffuse || null,
-    normalMap: normal || null,
     roughness: 0.8,
     metalness: 0.0,
   });
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_daymap.jpg",
+    (t) => { material.map = t; material.needsUpdate = true; },
+    undefined,
+    () => console.warn("[3D] diffuse texture failed to load, using base color")
+  );
+  loader.load(
+    "https://raw.githubusercontent.com/Anemy/earth-textures/main/earth_normalmap.jpg",
+    (t) => { material.normalMap = t; material.needsUpdate = true; },
+    undefined,
+    () => console.warn("[3D] normal texture failed to load")
+  );
 
   THREE_GLOBE = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
   THREE_SCENE.add(THREE_GLOBE);

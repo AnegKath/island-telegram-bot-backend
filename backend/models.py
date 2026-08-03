@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import String, BigInteger, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,11 +30,12 @@ class User(Base):
 
     # Посилання на аватарку. Спочатку - шлях до дефолтної SVG-заглушки
     # (/static/avatars/avatarN.svg), пізніше - може стати посиланням на
-    # справжню 3D-модель (.glb) з Ready Player Me. Довжина збільшена під URL.
-    avatar_url: Mapped[str] = mapped_column(String(500))
+    # справжню 3D-модель (.glb) з Ready Player Me. Довжина збільшена під URL
+    # та під data-URI згенерованої SVG-аватарки.
+    avatar_url: Mapped[str] = mapped_column(String(2048))
 
     # True, якщо юзер вже створив собі справжній 3D-аватар через Ready Player Me
     # (тоді avatar_url вказує на .glb файл, а не на SVG-заглушку)
     has_3d_avatar: Mapped[bool] = mapped_column(default=False)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

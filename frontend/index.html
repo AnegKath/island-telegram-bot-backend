@@ -79,21 +79,8 @@
     <button id="save-avatar-btn" class="save-avatar-btn">Зберегти аватар</button>
   </div>
 
-  <!-- three.js and controls for 3D planet -->
-  <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.161.0/examples/js/controls/OrbitControls.js"></script>
-
-  <!-- three.js and controls vendored locally to avoid CDN blocking -->
+  <!-- three.js vendored locally (0.150.1) so it works in Telegram WebView without CDN -->
   <script src="vendor/three.min.js"></script>
-  <!-- jsm module converted for non-module use via inline shim -->
-  <script>
-    // Shim to attach OrbitControls to global THREE when using jsm build
-    (function(){
-      var exports = {};
-      var module = { exports: {} };
-    })();
-  </script>
-  <script src="vendor/OrbitControls.js"></script>
 
   <!-- Load app.js last, without defer, so THREE is guaranteed -->
   <script src="app.js"></script>
