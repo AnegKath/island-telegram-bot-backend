@@ -321,74 +321,144 @@ let avatarConfig = {
   glasses: false,
 };
 
-function hairSvg(style, color) {
-  switch (style) {
-    case "bald":
-      return "";
-    case "short":
-      return `<path d="M32,88 Q36,18 100,18 Q164,18 168,88 L168,55 Q160,32 100,32 Q40,32 32,55 Z" fill="${color}"/>`;
-    case "long":
-      return `
-        <path d="M32,88 Q36,18 100,18 Q164,18 168,88 L168,55 Q160,32 100,32 Q40,32 32,55 Z" fill="${color}"/>
-        <rect x="22" y="55" width="20" height="90" rx="10" fill="${color}"/>
-        <rect x="158" y="55" width="20" height="90" rx="10" fill="${color}"/>
-      `;
-    case "curly":
-      return `
-        <circle cx="50" cy="45" r="18" fill="${color}"/>
-        <circle cx="80" cy="28" r="20" fill="${color}"/>
-        <circle cx="115" cy="26" r="20" fill="${color}"/>
-        <circle cx="148" cy="42" r="18" fill="${color}"/>
-        <circle cx="65" cy="35" r="16" fill="${color}"/>
-        <circle cx="132" cy="34" r="16" fill="${color}"/>
-      `;
-    case "mohawk":
-      return `<path d="M85,15 Q100,5 115,15 L120,70 Q100,60 80,70 Z" fill="${color}"/>`;
-    default:
-      return "";
+/* ═══════════════════════════════════════════════
+   3D AVATAR BUILDER (three.js)
+   ═══════════════════════════════════════════════ */
+
+let avatarScene, avatarCamera, avatarRenderer;
+let avatarHead, avatarHairGroup, avatarMouthMesh, avatarGlassesGroup;
+
+function initAvatar3D() {
+  const canvas = document.getElementById("avatar-3d-canvas");
+  if (!canvas || !window.THREE) return;
+
+  if (avatarRenderer) { updateAvatar3D(); return; }
+
+  avatarScene = new THREE.Scene();
+  avatarCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  avatarCamera.position.set(0, 0.15, 3.2);
+  avatarCamera.lookAt(0, 0, 0);
+
+  avatarRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  avatarRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  avatarRenderer.setSize(200, 200);
+
+  avatarScene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(2, 3, 4);
+  avatarScene.add(dir);
+
+  // Голова
+  const headMat = new THREE.MeshStandardMaterial({ color: avatarConfig.skin, roughness: 0.5 });
+  avatarHead = new THREE.Mesh(new THREE.SphereGeometry(0.75, 32, 32), headMat);
+  avatarHead.position.y = -0.05;
+  avatarScene.add(avatarHead);
+
+  // Очі
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+  [-0.22, 0.22].forEach((x) => {
+    const g = new THREE.Group();
+    const w = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), whiteMat);
+    w.position.z = 0.65; w.scale.z = 0.5; g.add(w);
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 12), pupilMat);
+    p.position.z = 0.72; g.add(p);
+    g.position.set(x, 0.1, 0);
+    avatarScene.add(g);
+  });
+
+  avatarHairGroup = new THREE.Group(); avatarScene.add(avatarHairGroup);
+  avatarMouthMesh = null;
+  avatarGlassesGroup = new THREE.Group(); avatarScene.add(avatarGlassesGroup);
+
+  updateAvatar3D();
+
+  (function animate() {
+    requestAnimationFrame(animate);
+    if (avatarHead) avatarHead.rotation.y = Math.sin(Date.now() * 0.001) * 0.15;
+    avatarRenderer.render(avatarScene, avatarCamera);
+  })();
+}
+
+function updateAvatar3D() {
+  if (!avatarRenderer) return;
+
+  // Шкіра
+  avatarHead.material.color.set(avatarConfig.skin);
+
+  // Зачіска
+  avatarHairGroup.clear();
+  const hMat = new THREE.MeshStandardMaterial({ color: avatarConfig.hairColor, roughness: 0.7 });
+  switch (avatarConfig.hairStyle) {
+    case "short": {
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.78, 32, 16, 0, Math.PI*2, 0, Math.PI*0.45), hMat);
+      cap.position.y = 0.1; avatarHairGroup.add(cap); break;
+    }
+    case "long": {
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.78, 32, 16, 0, Math.PI*2, 0, Math.PI*0.45), hMat);
+      cap.position.y = 0.1; avatarHairGroup.add(cap);
+      [-1, 1].forEach((s) => {
+        const side = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.08, 0.6, 12), hMat);
+        side.position.set(s*0.6, -0.2, 0.1); side.rotation.z = s * -0.15;
+        avatarHairGroup.add(side);
+      }); break;
+    }
+    case "curly": {
+      [[-0.3,0.5,0.2],[0,0.6,0.15],[0.3,0.5,0.2],[-0.15,0.55,-0.1],[0.15,0.55,-0.1],[0,0.45,0.35]].forEach(([x,y,z]) => {
+        const c = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), hMat);
+        c.position.set(x,y,z); avatarHairGroup.add(c);
+      }); break;
+    }
+    case "mohawk": {
+      for (let i = 0; i < 5; i++) {
+        const s = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.3-i*0.03, 8), hMat);
+        s.position.set(0, 0.45+i*0.06, 0.25-i*0.06); avatarHairGroup.add(s);
+      } break;
+    }
   }
-}
 
-function mouthSvg(style) {
-  switch (style) {
-    case "smile":
-      return `<path d="M75,130 Q100,152 125,130" stroke="#5a3825" stroke-width="4" fill="none" stroke-linecap="round"/>`;
-    case "neutral":
-      return `<line x1="80" y1="132" x2="120" y2="132" stroke="#5a3825" stroke-width="4" stroke-linecap="round"/>`;
-    case "open":
-      return `<ellipse cx="100" cy="133" rx="12" ry="16" fill="#5a3825"/>`;
-    case "smirk":
-      return `<path d="M78,130 Q100,140 122,124" stroke="#5a3825" stroke-width="4" fill="none" stroke-linecap="round"/>`;
-    default:
-      return "";
+  // Рот
+  avatarScene.remove(avatarMouthMesh);
+  const mMat = new THREE.MeshStandardMaterial({ color: 0x5a3825 });
+  switch (avatarConfig.mouth) {
+    case "smile": {
+      avatarMouthMesh = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 16, Math.PI), mMat);
+      avatarMouthMesh.position.set(0, -0.25, 0.68);
+      avatarMouthMesh.rotation.x = Math.PI; avatarMouthMesh.rotation.z = Math.PI; break;
+    }
+    case "neutral": {
+      avatarMouthMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.18, 8), mMat);
+      avatarMouthMesh.position.set(0, -0.25, 0.7); avatarMouthMesh.rotation.z = Math.PI/2; break;
+    }
+    case "open": {
+      avatarMouthMesh = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), mMat);
+      avatarMouthMesh.position.set(0, -0.28, 0.66); avatarMouthMesh.scale.y = 1.3; break;
+    }
+    case "smirk": {
+      avatarMouthMesh = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.02, 8, 16, Math.PI*0.7), mMat);
+      avatarMouthMesh.position.set(0.05, -0.25, 0.68);
+      avatarMouthMesh.rotation.x = Math.PI; avatarMouthMesh.rotation.z = Math.PI+0.3; break;
+    }
   }
-}
+  if (avatarMouthMesh) avatarScene.add(avatarMouthMesh);
 
-function glassesSvg(enabled) {
-  if (!enabled) return "";
-  return `
-    <circle cx="78" cy="95" r="16" fill="none" stroke="#333" stroke-width="4"/>
-    <circle cx="122" cy="95" r="16" fill="none" stroke="#333" stroke-width="4"/>
-    <line x1="94" y1="95" x2="106" y2="95" stroke="#333" stroke-width="4"/>
-  `;
-}
-
-function generateAvatarSVG(config) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-    <circle cx="100" cy="100" r="90" fill="#eef6f2"/>
-    <ellipse cx="100" cy="115" rx="70" ry="75" fill="${config.skin}"/>
-    <circle cx="78" cy="95" r="7" fill="#2c1b18"/>
-    <circle cx="122" cy="95" r="7" fill="#2c1b18"/>
-    <circle cx="80" cy="93" r="2" fill="#fff"/>
-    <circle cx="124" cy="93" r="2" fill="#fff"/>
-    ${mouthSvg(config.mouth)}
-    ${hairSvg(config.hairStyle, config.hairColor)}
-    ${glassesSvg(config.glasses)}
-  </svg>`;
-}
-
-function renderAvatarPreview() {
-  document.getElementById("avatar-preview").innerHTML = generateAvatarSVG(avatarConfig);
+  // Окуляри
+  avatarGlassesGroup.clear();
+  if (avatarConfig.glasses) {
+    const gMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3 });
+    [-0.22, 0.22].forEach((x) => {
+      const f = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.015, 8, 24), gMat);
+      f.position.set(x, 0.1, 0.72); avatarGlassesGroup.add(f);
+    });
+    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 6), gMat);
+    bridge.position.set(0, 0.1, 0.74); bridge.rotation.z = Math.PI/2;
+    avatarGlassesGroup.add(bridge);
+    [-1, 1].forEach((s) => {
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.3, 6), gMat);
+      arm.position.set(s*0.35, 0.12, 0.6); arm.rotation.y = s*-0.5; arm.rotation.z = Math.PI/2;
+      avatarGlassesGroup.add(arm);
+    });
+  }
 }
 
 function buildSwatchRow(containerId, colors, configKey) {
@@ -429,6 +499,10 @@ function buildPillRow(containerId, options, configKey) {
   });
 }
 
+function renderAvatarPreview() {
+  updateAvatar3D();
+}
+
 function setupAvatarBuilder() {
   buildSwatchRow("skin-swatches", SKIN_TONES, "skin");
   buildPillRow("hair-style-row", HAIR_STYLES, "hairStyle");
@@ -443,7 +517,7 @@ function setupAvatarBuilder() {
     renderAvatarPreview();
   });
 
-  renderAvatarPreview();
+  initAvatar3D();
 }
 
 const avatarBuilderOverlay = document.getElementById("avatar-builder-overlay");
@@ -464,8 +538,9 @@ document.getElementById("close-avatar-builder").addEventListener("click", closeA
 
 document.getElementById("save-avatar-btn").addEventListener("click", async () => {
   hapticTap();
-  const svgString = generateAvatarSVG(avatarConfig);
-  const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`;
+  // Експортуємо 3D-сцену в PNG data URI
+  const canvas = document.getElementById("avatar-3d-canvas");
+  const dataUri = canvas.toDataURL("image/png");
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/profile/avatar`, {
